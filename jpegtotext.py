@@ -40,6 +40,12 @@ def tiff_to_textboxfiles(i, j, numpages, userviewinput):
         userviewinput = input('View text identified version of .tiff files? (Y/N)')
     if(userviewinput in ['Y', 'yes', 'y', 'YES']):
         viewwithboxes(img, j, numpages)
+
+    # os.chdir('/Users/anshulgowda/Documents/CODE/KUH2022/')
+    isWritten = cv2.imwrite(
+        'TEXTBOX_tiffs/Doc{}/TextBoxDoc{}Page{}.tiff'.format(str(i), str(i), str(j)), img)
+    print('was saved = {}'.format(isWritten))
+    # img.save('TEXTBOX_tiffs_/Doc{}/TextBoxDoc{}Page{}.jpeg'.format(str(i), str(i), str(j)), 'JPEG', quality=100)
     return userviewinput
 
 
