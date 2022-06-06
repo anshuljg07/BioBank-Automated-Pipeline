@@ -31,6 +31,14 @@ for i in range(numberbiopsies):
         img = grayscale(img)
         img = thresholding(img)  # idk what this does
         tempdict = pytesseract.image_to_data(img, output_type=Output.DICT)
-        print(tempdict.keys())
-        print(tempdict.values())
-        print('\n\n\n')
+        # creation of boxes
+        n_boxes = len(d['text')
+        for k in range(n_boxes):
+            if int(d['conf'][k]) > 150:
+                (x, y, w, h)= (d['left'][k], d['top'][k], d['width'][k], d['height'][k])
+                img = cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), 2)
+                cv2.imshow('imgwithboxes', img)
+                cv2.waitKey(0)
+        # print(tempdict.keys())sd
+        # print(tempdict.values())
+        # print('\n\n\n')
