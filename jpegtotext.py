@@ -41,25 +41,27 @@ def tiff_to_textboxfiles(i, j, numpages, userviewinput):
     if(userviewinput in ['Y', 'yes', 'y', 'YES']):
         viewwithboxes(img, j, numpages)
 
-    # os.chdir('/Users/anshulgowda/Documents/CODE/KUH2022/')
+    # save outlined images into 'TEXTBOX_tiffs folder based on Document number'
     isWritten = cv2.imwrite(
         'TEXTBOX_tiffs/Doc{}/TextBoxDoc{}Page{}.tiff'.format(str(i), str(i), str(j)), img)
-    print('was saved = {}'.format(isWritten))
-    # img.save('TEXTBOX_tiffs_/Doc{}/TextBoxDoc{}Page{}.jpeg'.format(str(i), str(i), str(j)), 'JPEG', quality=100)
-    return userviewinput
+    # print('was saved = {}'.format(isWritten))
+
+    return userviewinput, pageinfodict
 
 
 def main():
     numberbiopsies = 1
 
-    outputstring = ''
+    docblock = ''
+    sectionmarkers = ['final diagnosis', 'light microscopy',
+                      'immunofluorescence microscopy', 'electron microscopy', 'Gross Description']
     try:
         os.mkdir('TIFFS')
         os.mkdir('TEXTBOX_tiffs')
     except:
         pass
 
-    for i in range(numberbiopsies):
+    for i in range(numberbiopsies):  # iterate through number of biopsies
         images = convert_from_path('template_biopsy_copy{}.pdf'.format(
             str(i)))  # convert the pdf to a list of jpegs of the pages
         try:
@@ -77,30 +79,40 @@ def main():
         for j in range(len(images)):  # now I want to convert to text using the library
             if j == 0:
                 userin = ''
-            userin = tiff_to_textboxfiles(i, j, len(images), userin)
+            userin, textdict = tiff_to_textboxfiles(i, j, len(images), userin)
+            # print(textdict['text'])
+            pageblock = ' '.join(textdict['text'])
+            docblock += ' ' + pageblock  # contains the entire document in string format
 
-            # img = cv2.imread('tiff_reports/Doc{}page{}.tiff'.format(str(i), str(j)))
-            # # img = grayscale(img)
-            # # img = thresholding(img)  # idk what this does
-            # pageinfodict = pytesseract.image_to_data(img, output_type=Output.DICT)
-            # # creation of boxes
-            # n_boxes = len(pageinfodict['text'])
-            # for k in range(n_boxes):
-            #     if int(float(pageinfodict['conf'][k])) > 60:
-            #         (x, y, w, h) = (pageinfodict['left'][k], pageinfodict['top']
-            #                         [k], pageinfodict['width'][k], pageinfodict['height'][k])
-            #         img = cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), 2)
-            #
-            # user_boxes = input('View text identified version of .tiff files? (Y/N)')
-            # if(user_boxes in ['Y', 'yes', 'y', 'YES']):
-            #     viewwithboxes(img, j, len(images))
-            # temporary viewing
-            # print('before imshow')
-            # cv2.imshow('imgwithboxes', img)
-            # cv2.waitKey(5000)
-            # print('after imshow')
-            # cv2.destroyAllWindows()
-            # print(tempdict.keys())sd
-            # print(tempdict.values())
-            # print('\n\n\n')
+        # with docblock string, create func to analye string and break using docmarkers
+
+    #         print('\n\n\t\t\tPRE STRIP : \n\n{}'.format(pageblock))
+    #         print('\n\n\t\t\tPOST STRIP : \n\n{}'.format(pageblock.strip()))
+    # print('\n\n\nFINAL TEXT BLOCK: \n\n{}'.format(docblock))
+
+
+    # img = cv2.imread('tiff_reports/Doc{}page{}.tiff'.format(str(i), str(j)))
+    # # img = grayscale(img)
+    # # img = thresholding(img)  # idk what this does
+    # pageinfodict = pytesseract.image_to_data(img, output_type=Output.DICT)
+    # # creation of boxes
+    # n_boxes = len(pageinfodict['text'])
+    # for k in range(n_boxes):
+    #     if int(float(pageinfodict['conf'][k])) > 60:
+    #         (x, y, w, h) = (pageinfodict['left'][k], pageinfodict['top']
+    #                         [k], pageinfodict['width'][k], pageinfodict['height'][k])
+    #         img = cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), 2)
+    #
+    # user_boxes = input('View text identified version of .tiff files? (Y/N)')
+    # if(user_boxes in ['Y', 'yes', 'y', 'YES']):
+    #     viewwithboxes(img, j, len(images))
+    # temporary viewing
+    # print('before imshow')
+    # cv2.imshow('imgwithboxes', img)
+    # cv2.waitKey(5000)
+    # print('after imshow')
+    # cv2.destroyAllWindows()
+    # print(tempdict.keys())sd
+    # print(tempdict.values())
+    # print('\n\n\n')
 main()
