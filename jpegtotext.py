@@ -4,6 +4,7 @@ import cv2
 import pytesseract
 from pytesseract import Output
 import os
+import re
 
 
 def grayscale(image):
@@ -49,12 +50,66 @@ def tiff_to_textboxfiles(i, j, numpages, userviewinput):
     return userviewinput, pageinfodict
 
 
+def docblockanalysis(docblock, markers):
+    # print(docblock)
+    # words = re.findall(r'\w+', docblock) #regex (1) gets rid of special chars
+    # regex (2) keeps special chars, could be used for identification
+    sections = []
+
+    noWS_docblock = ' '.join(re.findall(r'\w+|\S+', docblock)).lower()
+    print(noWS_docblock)
+
+    print(len(markers))
+
+    # start = noWS_docblock.find(markers[9][0], start)   #creation of old start, use when iteration is there
+    # start = noWS_docblock.find(markers[14][0])
+    # end = noWS_docblock.find(markers[14][1], start)
+    #
+    # print('{} -> {} = {} -> {}'.format(markers[14][0], markers[14][1], start, end))
+    # print(noWS_docblock[start + len(markers[14][0]): end])
+
+    for i in range(len(markers)):
+        if (i == 0):
+            start = 0
+        start = noWS_docblock.find(markers[i][0], start)
+        end = noWS_docblock.find(markers[i][1], start)
+        print(
+            '\n\n\nNEW SECTION: \t{} -> {} \t\t {} -> {}\n'.format(markers[i][0], markers[i][1], start, end))
+        sections.append(noWS_docblock[start + len(markers[14][0]): end])
+        print(noWS_docblock[start + len(markers[i][0]): end])
+
+    # print(markers[0][0] in noWS_docblock)
+    # print(markers[0][1] in noWS_docblock)
+    # result1 = re.search(markers[0][0], noWS_docblock)
+    # result2 = re.search(markers[0][1], noWS_docblock)
+    # print(noWS_docblock)
+    # print(markers[0][1])
+    # print(result1)
+    # print(result2)
+    # searchstr = '{}(.*?){}'.format(markers[0][0], markers[0][1])
+    # result = re.search(searchstr, noWS_docblock)
+    # print(result)
+    # for markpair in markers:
+    #     result = re.search(markpair[0] + '(.*)' + markpair[1], noWS_docblock)
+    #     if result:
+    #         print('\t\t\tSECTION: \n\n{}'.format(result.group(1)))
+
+
 def main():
     numberbiopsies = 1
 
     docblock = ''
-    sectionmarkers = ['final diagnosis', 'light microscopy',
-                      'immunofluorescence microscopy', 'electron microscopy', 'Gross Description']
+    pageblocks = []
+    # sectionmarkers_new = ['clinical information provided', 'final diagnosis', 'light microscopy', 'immunofluorescence microscopy', 'electron microscopy', 'Gross Description', 'Frozen/Intraoperative Diagnosis: ()']
+    # sectionmarkers_new = {'clinical information provided :': ['Specimen (s) Received :'], 'final diagnosis': ['kidney , biopsy :'], 'light microscopy': [
+    # ], 'immunofluorescence microscopy': [], 'electron microscopy': [], 'Gross Description': [], 'Frozen/Intraoperative Diagnosis: ()': []}
+    # sectionmarkers_new = {'clinical information provided :': [], 'specimen (s) received :': ['1 :', '2 :', '3 :'], 'final diagnosis': ['kidney , biopsy :', 'note :'], 'light microscopy :': [
+    # ], 'immunofluorescence microscopy :': [], 'electron microscopy :': ['surgical pathology report', 'pathologist :'], 'gross description :': ['1 .', '2 .', '3 .'], 'Frozen /Intraoperative Diagnosis : ()': []}
+ # specimen (s) received :
+ # specimen (s) received :
+    sectionmarkers_new = [['clinical information provided :', 'specimen (s) received :'], ['1 :', '2 :'], ['2 :', '3 :'], ['3 :', 'final diagnosis'], ['kidney , biopsy :', 'note :'], ['note :', 'light microscopy :'], ['light microscopy :', 'immunofluorescence microscopy :'], [
+        'immunofluorescence microscopy :', 'electron microscopy :'], ['electron microscopy :', 'surgical pathology report'], ['surgical pathology report', 'pathologist :'], ['pathologist :', 'gross description :'], ['1 .', '2 .'], ['2 .', '3 .'], ['3 .', 'frozen /intraoperative diagnosis : ()'], ['frozen /intraoperative diagnosis : ()', '-999999999']]
+
     try:
         os.mkdir('TIFFS')
         os.mkdir('TEXTBOX_tiffs')
@@ -80,17 +135,19 @@ def main():
             if j == 0:
                 userin = ''
             userin, textdict = tiff_to_textboxfiles(i, j, len(images), userin)
-            # print(textdict['text'])
-            pageblock = ' '.join(textdict['text'])
-            docblock += ' ' + pageblock  # contains the entire document in string format
+            pageblocks.append(' '.join(textdict['text']))
+            # print('\n\n\t\t\tPRE STRIP : \n\n{}'.format(pageblocks[j]))
+            # print('\n\n\t\t\tPOST STRIP : \n\n{}'.format(pageblocks[j]))
+
+        docblock = ' '.join(pageblocks)
+        docblockanalysis(docblock, sectionmarkers_new)
+        # print('\n\n\nFINAL TEXT BLOCK: \n\n{}'.format(docblock))
 
         # with docblock string, create func to analye string and break using docmarkers
 
     #         print('\n\n\t\t\tPRE STRIP : \n\n{}'.format(pageblock))
     #         print('\n\n\t\t\tPOST STRIP : \n\n{}'.format(pageblock.strip()))
     # print('\n\n\nFINAL TEXT BLOCK: \n\n{}'.format(docblock))
-
-
     # img = cv2.imread('tiff_reports/Doc{}page{}.tiff'.format(str(i), str(j)))
     # # img = grayscale(img)
     # # img = thresholding(img)  # idk what this does
