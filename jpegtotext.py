@@ -25,11 +25,10 @@ def viewwithboxes(image, num, total):
     cv2.destroyAllWindows()
 
 
-def tiff_to_textboxfiles(i, j, numpages, userviewinput):
-    img = cv2.imread('TIFFS/Doc{}/Doc{}page{}.tiff'.format(str(i), str(i), str(j)))
-    # img = grayscale(img)
-    # img = thresholding(img)  # idk what this does
-    pageinfodict = pytesseract.image_to_data(img, output_type=Output.DICT)
+def tiff_to_textboxfiles(i, j, pageinfodict, img, numpages, userviewinput):
+    # def tiff_to_textboxfiles(i, j, numpages, userviewinput):
+    # img = cv2.imread('TIFFS/Doc{}/Doc{}page{}.tiff'.format(str(i), str(i), str(j)))
+    # pageinfodict = pytesseract.image_to_data(img, output_type=Output.DICT)
     # creation of boxes
     n_boxes = len(pageinfodict['text'])
     for k in range(n_boxes):
@@ -47,7 +46,7 @@ def tiff_to_textboxfiles(i, j, numpages, userviewinput):
         'TEXTBOX_tiffs/Doc{}/TextBoxDoc{}Page{}.tiff'.format(str(i), str(i), str(j)), img)
     # print('was saved = {}'.format(isWritten))
 
-    return userviewinput, pageinfodict
+    return userviewinput
 
 
 def docblockanalysis(docblock, markers):
@@ -129,7 +128,14 @@ def main():
         for j in range(len(images)):  # now I want to convert to text using the library
             if j == 0:
                 userin = ''
-            userin, textdict = tiff_to_textboxfiles(i, j, len(images), userin)
+
+            # load images here and generate pytesseract dict here instead of in func
+            img = cv2.imread('TIFFS/Doc{}/Doc{}page{}.tiff'.format(str(i), str(i), str(j)))
+            textdict = pytesseract.image_to_data(img, output_type=Output.DICT)
+
+            userin = tiff_to_textboxfiles(i, j, textdict, img, len(images), userin)
+
+            # userin, textdict = tiff_to_textboxfiles(i, j, len(images), userin)
             pageblocks.append(' '.join(textdict['text']))
             # print('\n\n\t\t\tPRE STRIP : \n\n{}'.format(pageblocks[j]))
             # print('\n\n\t\t\tPOST STRIP : \n\n{}'.format(pageblocks[j]))
@@ -140,7 +146,6 @@ def main():
         # print('\n\n\nFINAL TEXT BLOCK: \n\n{}'.format(docblock))
 
         # with docblock string, create func to analye string and break using docmarkers
-
 
     #         print('\n\n\t\t\tPRE STRIP : \n\n{}'.format(pageblock))
     #         print('\n\n\t\t\tPOST STRIP : \n\n{}'.format(pageblock.strip()))
