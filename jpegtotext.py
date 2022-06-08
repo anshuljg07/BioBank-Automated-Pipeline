@@ -55,18 +55,9 @@ def docblockanalysis(docblock, markers):
     # words = re.findall(r'\w+', docblock) #regex (1) gets rid of special chars
     # regex (2) keeps special chars, could be used for identification
     sections = []
+    section_dict = {}
 
     noWS_docblock = ' '.join(re.findall(r'\w+|\S+', docblock)).lower()
-    print(noWS_docblock)
-
-    print(len(markers))
-
-    # start = noWS_docblock.find(markers[9][0], start)   #creation of old start, use when iteration is there
-    # start = noWS_docblock.find(markers[14][0])
-    # end = noWS_docblock.find(markers[14][1], start)
-    #
-    # print('{} -> {} = {} -> {}'.format(markers[14][0], markers[14][1], start, end))
-    # print(noWS_docblock[start + len(markers[14][0]): end])
 
     for i in range(len(markers)):
         if (i == 0):
@@ -75,8 +66,10 @@ def docblockanalysis(docblock, markers):
         end = noWS_docblock.find(markers[i][1], start)
         print(
             '\n\n\nNEW SECTION: \t{} -> {} \t\t {} -> {}\n'.format(markers[i][0], markers[i][1], start, end))
-        sections.append(noWS_docblock[start + len(markers[14][0]): end])
-        print(noWS_docblock[start + len(markers[i][0]): end])
+        print('{}'.format(noWS_docblock[start + len(markers[i][0]): end]))
+        sections.append(noWS_docblock[start + len(markers[i][0]): end])
+        # sections.append(' '.join(re.findall(r'\w+', noWS_docblock[start + len(markers[i][0]): end]))) #if extra symbols not needed (%symbols may be required)
+    return sections
 
     # print(markers[0][0] in noWS_docblock)
     # print(markers[0][1] in noWS_docblock)
@@ -100,6 +93,7 @@ def main():
 
     docblock = ''
     pageblocks = []
+    docsdata = []
     # sectionmarkers_new = ['clinical information provided', 'final diagnosis', 'light microscopy', 'immunofluorescence microscopy', 'electron microscopy', 'Gross Description', 'Frozen/Intraoperative Diagnosis: ()']
     # sectionmarkers_new = {'clinical information provided :': ['Specimen (s) Received :'], 'final diagnosis': ['kidney , biopsy :'], 'light microscopy': [
     # ], 'immunofluorescence microscopy': [], 'electron microscopy': [], 'Gross Description': [], 'Frozen/Intraoperative Diagnosis: ()': []}
@@ -117,8 +111,9 @@ def main():
         pass
 
     for i in range(numberbiopsies):  # iterate through number of biopsies
-        images = convert_from_path('template_biopsy_copy{}.pdf'.format(
-            str(i)))  # convert the pdf to a list of jpegs of the pages
+        # images = convert_from_path('template_biopsy_copy{}.pdf'.format(str(i)))  # convert the pdf to a list of jpegs of the pages
+        images = convert_from_path('BIO-01-003_FinalPathologyReport.pdf')
+
         try:
             os.mkdir('TIFFS/Doc{}'.format(str(i)))
             os.mkdir('TEXTBOX_tiffs/Doc{}'.format(str(i)))
@@ -140,10 +135,12 @@ def main():
             # print('\n\n\t\t\tPOST STRIP : \n\n{}'.format(pageblocks[j]))
 
         docblock = ' '.join(pageblocks)
-        docblockanalysis(docblock, sectionmarkers_new)
+        docsdata.append(docblockanalysis(docblock, sectionmarkers_new))
+
         # print('\n\n\nFINAL TEXT BLOCK: \n\n{}'.format(docblock))
 
         # with docblock string, create func to analye string and break using docmarkers
+
 
     #         print('\n\n\t\t\tPRE STRIP : \n\n{}'.format(pageblock))
     #         print('\n\n\t\t\tPOST STRIP : \n\n{}'.format(pageblock.strip()))
