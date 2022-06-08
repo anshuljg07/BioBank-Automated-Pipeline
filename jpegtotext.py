@@ -98,10 +98,12 @@ def main():
     # ], 'immunofluorescence microscopy': [], 'electron microscopy': [], 'Gross Description': [], 'Frozen/Intraoperative Diagnosis: ()': []}
     # sectionmarkers_new = {'clinical information provided :': [], 'specimen (s) received :': ['1 :', '2 :', '3 :'], 'final diagnosis': ['kidney , biopsy :', 'note :'], 'light microscopy :': [
     # ], 'immunofluorescence microscopy :': [], 'electron microscopy :': ['surgical pathology report', 'pathologist :'], 'gross description :': ['1 .', '2 .', '3 .'], 'Frozen /Intraoperative Diagnosis : ()': []}
- # specimen (s) received :
- # specimen (s) received :
-    sectionmarkers_new = [['clinical information provided :', 'specimen (s) received :'], ['1 :', '2 :'], ['2 :', '3 :'], ['3 :', 'final diagnosis'], ['kidney , biopsy :', 'note :'], ['note :', 'light microscopy :'], ['light microscopy :', 'immunofluorescence microscopy :'], [
-        'immunofluorescence microscopy :', 'electron microscopy :'], ['electron microscopy :', 'surgical pathology report'], ['surgical pathology report', 'pathologist :'], ['pathologist :', 'gross description :'], ['1 .', '2 .'], ['2 .', '3 .'], ['3 .', 'frozen /intraoperative diagnosis : ()'], ['frozen /intraoperative diagnosis : ()', '-999999999']]
+
+ # possibly add "FINAL DIAGNOSIS    KIDNEY, BIOPSY:"
+ # possibly add "FINAL DIAGNOSIS    KIDNEY, BIOPSY:"
+
+    sectionmarkers_new = [['clinical information provided :', 'specimen (s) received :'], ['final diagnosis kidney , biopsy :', 'note :'], ['light microscopy :', 'immunofluorescence microscopy :'], ['immunofluorescence microscopy :', 'electron microscopy :'], [
+        'electron microscopy :', 'printed by :'], ['surgical pathology report', 'pathologist :'], ['pathologist :', 'electron micrograph'], ['1 .', '2 .'], ['2 .', '3 .'], ['3 .', 'frozen /intraoperative diagnosis : ()']]
 
     try:
         os.mkdir('TIFFS')
@@ -110,7 +112,8 @@ def main():
         pass
 
     for i in range(numberbiopsies):  # iterate through number of biopsies
-        # images = convert_from_path('template_biopsy_copy{}.pdf'.format(str(i)))  # convert the pdf to a list of jpegs of the pages
+        # images = convert_from_path('template_biopsy_copy{}.pdf'.format(
+        #     str(i)))  # convert the pdf to a list of jpegs of the pages
         images = convert_from_path('BIO-01-003_FinalPathologyReport.pdf')
 
         try:
@@ -141,11 +144,13 @@ def main():
             # print('\n\n\t\t\tPOST STRIP : \n\n{}'.format(pageblocks[j]))
 
         docblock = ' '.join(pageblocks)
+        print(docblock)
         docsdata.append(docblockanalysis(docblock, sectionmarkers_new))
 
         # print('\n\n\nFINAL TEXT BLOCK: \n\n{}'.format(docblock))
 
         # with docblock string, create func to analye string and break using docmarkers
+
 
     #         print('\n\n\t\t\tPRE STRIP : \n\n{}'.format(pageblock))
     #         print('\n\n\t\t\tPOST STRIP : \n\n{}'.format(pageblock.strip()))
