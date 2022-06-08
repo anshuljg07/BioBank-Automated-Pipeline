@@ -25,7 +25,8 @@ def viewwithboxes(image, num, total):
     cv2.destroyAllWindows()
 
 
-def tiff_to_textboxfiles(i, j, pageinfodict, img, numpages, userviewinput):
+# def tiff_to_textboxfiles(i, j, pageinfodict, img, numpages, userviewinput):
+def tiff_to_textboxfiles(i, j, pageinfodict, img, numpages):
     # def tiff_to_textboxfiles(i, j, numpages, userviewinput):
     # img = cv2.imread('TIFFS/Doc{}/Doc{}page{}.tiff'.format(str(i), str(i), str(j)))
     # pageinfodict = pytesseract.image_to_data(img, output_type=Output.DICT)
@@ -36,17 +37,17 @@ def tiff_to_textboxfiles(i, j, pageinfodict, img, numpages, userviewinput):
             (x, y, w, h) = (pageinfodict['left'][k], pageinfodict['top']
                             [k], pageinfodict['width'][k], pageinfodict['height'][k])
             img = cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), 2)
-    if not userviewinput:
-        userviewinput = input('View text identified version of .tiff files? (Y/N)')
-    if(userviewinput in ['Y', 'yes', 'y', 'YES']):
-        viewwithboxes(img, j, numpages)
+    # if not userviewinput:
+    #     userviewinput = input('View text identified version of .tiff files? (Y/N)')
+    # if(userviewinput in ['Y', 'yes', 'y', 'YES']):
+    #     viewwithboxes(img, j, numpages)
 
     # save outlined images into 'TEXTBOX_tiffs folder based on Document number'
     isWritten = cv2.imwrite(
         'TEXTBOX_tiffs/Doc{}/TextBoxDoc{}Page{}.tiff'.format(str(i), str(i), str(j)), img)
     # print('was saved = {}'.format(isWritten))
 
-    return userviewinput
+    # return userviewinput
 
 
 def docblockanalysis(docblock, markers):
@@ -136,7 +137,8 @@ def main():
             img = cv2.imread('TIFFS/Doc{}/Doc{}page{}.tiff'.format(str(i), str(i), str(j)))
             textdict = pytesseract.image_to_data(img, output_type=Output.DICT)
 
-            userin = tiff_to_textboxfiles(i, j, textdict, img, len(images), userin)
+            # userin = tiff_to_textboxfiles(i, j, textdict, img, len(images), userin)
+            tiff_to_textboxfiles(i, j, textdict, img, len(images))
 
             # userin, textdict = tiff_to_textboxfiles(i, j, len(images), userin)
             pageblocks.append(' '.join(textdict['text']))
