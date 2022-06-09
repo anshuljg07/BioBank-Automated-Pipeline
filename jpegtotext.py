@@ -1,4 +1,4 @@
-from PIL import *
+# from PIL import *
 from pdf2image import convert_from_path
 import cv2
 import pytesseract
