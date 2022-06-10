@@ -12,7 +12,7 @@ class ScrapeDriver:
         self.homepath = '/Users/anshulgowda/Documents/CODE/KUH2022/'
         self.pdfs = []
         self.sectionmarkers = [['clinical information provided :', 'specimen (s) received :'], ['final diagnosis kidney , biopsy :', 'note :'], ['light microscopy :', 'immunofluorescence microscopy :'], ['immunofluorescence microscopy :', 'electron microscopy :'], [
-            'electron microscopy :', 'printed by :'], ['surgical pathology report', 'pathologist :'], ['pathologist :', 'electron micrograph'], ['1 .', '2 .'], ['2 .', '3 .'], ['3 .', 'frozen /intraoperative diagnosis : ()']]
+            'electron microscopy :', 'pathologist :'], ['pathologist :', '* report electronically signed out *'], [['gross description :', 'frozen /intraoperative diagnosis : ()'], ['gross description :', 'summary of stains performed and reviewed']]]
         self.i = 0
         self.j = 0
         self.docsdata = []
@@ -67,14 +67,67 @@ class ScrapeDriver:
         print('\n\n\n\t\t\t DOC BLOCK GENERATED FOR DOC#{}:\n\n{}'.format(self.i, noWS_docblock))
 
         for z in range(len(self.sectionmarkers)):
+            # whichmarker 0
+            whichone = []
+            ifmultiple = [False, False]
             if (z == 0):
                 start = 0
-            start = noWS_docblock.find(self.sectionmarkers[z][0], start)
-            end = noWS_docblock.find(self.sectionmarkers[z][1], start)
+
+            if(isinstance(self.sectionmarkers[z][0], list)):
+                if(noWS_docblock.find(self.sectionmarkers[z][0][0], start) > 0):
+                    start = noWS_docblock.find(self.sectionmarkers[z][0][0], start)
+                    whichmarker = 0
+                    whichone[0] = 0
+                    print('\n\n\nNEW SECTION of DOC{}: \t{} -> {} \t\t {} -> {}\n'.format(self.i,
+                                                                                          self.sectionmarkers[z][0], self.sectionmarkers[z][1], start, end))
+                    print('{}'.format(noWS_docblock[start +
+                                                    len(self.sectionmarkers[self.i][0]): end]))
+                else:
+                    start = noWS_docblock.find(self.sectionmarkers[z][0][1], start)
+                    whichmarker = 1
+                    whichone[0] = 1
+            else:
+                start = noWS_docblock.find(self.sectionmarkers[z][0], start)
+
+            if(isinstance(self.sectionmarkers[z][1], list)):
+                if(noWS_docblock.find(self.sectionmarkers[z][1][0], start) > 0):
+                    end = noWS_docblock.find(self.sectionmarkers[z][1][0], start)
+                    whichone[1] = 0
+                else:
+                    end = noWS_docblock.find(self.sectionmarkers[z][1][1], start)
+                    whichone[1] = 1
+            else:
+                end = noWS_docblock.find(self.sectionmarkers[z][1], start)
+
+            # try:
+            #     start = noWS_docblock.find(self.sectionmarkers[z][0], start)
+            # except TypeError:
+            #     if(noWS_docblock.find(self.sectionmarkers[z][0][0], start) > 0):
+            #         start = noWS_docblock.find(self.sectionmarkers[z][0][0], start)
+            #         whichmarker = 0
+            #     else:
+            #         start = noWS_docblock.find(self.sectionmarkers[z][0][1], start)
+            #         whichmarker = 1
+            #
+            #
+            #     end = noWS_docblock.find(self.sectionmarkers[z][1], start)
+            # except TypeError:
+            #     if(noWS_docblock.find(self.sectionmarkers[z][1][0], start) > 0):
+            #         end = noWS_docblock.find(self.sectionmarkers[z][1][0], start)
+            #     else:
+            #         end = noWS_docblock.find(self.sectionmarkers[z][1][1], start)
+
             print('\n\n\nNEW SECTION of DOC{}: \t{} -> {} \t\t {} -> {}\n'.format(self.i,
                                                                                   self.sectionmarkers[z][0], self.sectionmarkers[z][1], start, end))
-            # print('{}'.format(noWS_docblock[start + len(markers[i][0]): end]))
-            sections.append(noWS_docblock[start + len(self.sectionmarkers[z][0]): end])
+
+            if(isinstance(self.sectionmarkers[self.i][0], list)):
+                print('{}'.format(
+                    noWS_docblock[start + len(self.sectionmarkers[self.i][0][whichmarker]): end]))
+                sections.append(
+                    noWS_docblock[start + len(self.sectionmarkers[z][0][whichmarker]): end])
+            else:
+                print('{}'.format(noWS_docblock[start + len(self.sectionmarkers[self.i][0]): end]))
+                sections.append(noWS_docblock[start + len(self.sectionmarkers[z][0]): end])
 
             # if extra symbols not needed (%symbols may be required):
             # sections.append(' '.join(re.findall(r'\w+', noWS_docblock[start + len(markers[i][0]): end])))
@@ -141,7 +194,8 @@ class ScrapeDriver:
             path, extension = os.path.splitext(doc)
             print('extension = {}\n'.format(extension))
             if(extension.lower() == '.pdf'):
-                self.Scrape(doc)
+                print('\n\t\tscraping {}\n'.format(path + extension))
+                self.Scrape(doc)  # UNCOMMENT!!!!!!!!
                 self.i += 1
         # pdflist = os.listdir(os.getcwd())
         # for j in [homepath + i for i in pdflist]:
@@ -158,6 +212,9 @@ def main():
     Drive.AnalyzePdfs()
     print('\n\n\t\t SUMMARY: number of docs read = ({}) == ({})\n\n'.format(len(Drive.docsdata), Drive.i))
     counter = 0
+
+    print('#doc = {}'.format(Drive.i))
+
     for i in Drive.docsdata:
         print('DATA Dump for doc{}:\n{}\n\n'.format(counter, i))
         counter += 1
@@ -175,6 +232,7 @@ def main():
     # pdflist = os.listdir(os.getcwd())
     # for j in [drivepath + i for i in pdflist]:
     #     print('\n\n{}\n\n'.format(j))
+
 
     # for filename in os.listdir(os.getcwd()):
     # call the read pdf funcs in "jpegtotext.py" prolly need to rename the file to

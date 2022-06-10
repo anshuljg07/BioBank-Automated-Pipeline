@@ -59,11 +59,16 @@ def docblockanalysis(docblock, markers):
 
     noWS_docblock = ' '.join(re.findall(r'\w+|\S+', docblock)).lower()
 
+    # print('\n\n\t\t\tnoWS docblock:\n\n{}'.format(noWS_docblock))
+
     for i in range(len(markers)):
         if (i == 0):
             start = 0
         start = noWS_docblock.find(markers[i][0], start)
         end = noWS_docblock.find(markers[i][1], start)
+
+        # prints all sections produced
+
         print(
             '\n\n\nNEW SECTION: \t{} -> {} \t\t {} -> {}\n'.format(markers[i][0], markers[i][1], start, end))
         print('{}'.format(noWS_docblock[start + len(markers[i][0]): end]))
@@ -94,6 +99,7 @@ def main():
     docblock = ''
     pageblocks = []
     docsdata = []
+    pagemetadicts = []
     # sectionmarkers_new = ['clinical information provided', 'final diagnosis', 'light microscopy', 'immunofluorescence microscopy', 'electron microscopy', 'Gross Description', 'Frozen/Intraoperative Diagnosis: ()']
     # sectionmarkers_new = {'clinical information provided :': ['Specimen (s) Received :'], 'final diagnosis': ['kidney , biopsy :'], 'light microscopy': [
     # ], 'immunofluorescence microscopy': [], 'electron microscopy': [], 'Gross Description': [], 'Frozen/Intraoperative Diagnosis: ()': []}
@@ -104,7 +110,7 @@ def main():
  # possibly add "FINAL DIAGNOSIS    KIDNEY, BIOPSY:"
 
     sectionmarkers_new = [['clinical information provided :', 'specimen (s) received :'], ['final diagnosis kidney , biopsy :', 'note :'], ['light microscopy :', 'immunofluorescence microscopy :'], ['immunofluorescence microscopy :', 'electron microscopy :'], [
-        'electron microscopy :', 'printed by :'], ['surgical pathology report', 'pathologist :'], ['pathologist :', 'electron micrograph'], ['1 .', '2 .'], ['2 .', '3 .'], ['3 .', 'frozen /intraoperative diagnosis : ()']]
+        'electron microscopy :', 'pathologist :'], ['pathologist :', '* report electronically signed out *'], ['gross description :', 'frozen /intraoperative diagnosis : ()']]
 
     try:
         os.mkdir('TIFFS')
@@ -134,25 +140,33 @@ def main():
                 userin = ''
 
             # load images here and generate pytesseract dict here instead of in func
+            # print(i)
+            # print('working on Doc{}page{}.tiff'.format(i, j))
             img = cv2.imread('TIFFS/Doc{}/Doc{}page{}.tiff'.format(str(i), str(i), str(j)))
             textdict = pytesseract.image_to_data(img, output_type=Output.DICT)
+            pagemetadicts.append(textdict)  # added for NEW HEADER DESTRCUTION FEATURE
 
-            # userin = tiff_to_textboxfiles(i, j, textdict, img, len(images), userin)
+            # FIND WAY TO GET RID OF HEADER --> TESTING SECTION
+            useabletext = []
+            for index, word in enumerate(textdict['text']):
+                if(textdict['top'][index] in range(80, 2040)):
+                    # print('"{}, top = {}"'.format(word, textdict['top'][index]))
+                    useabletext.append(word)
+
+                    # userin = tiff_to_textboxfiles(i, j, textdict, img, len(images), userin)
             tiff_to_textboxfiles(i, j, textdict, img, len(images))
 
             # userin, textdict = tiff_to_textboxfiles(i, j, len(images), userin)
-            pageblocks.append(' '.join(textdict['text']))
-            # print('\n\n\t\t\tPRE STRIP : \n\n{}'.format(pageblocks[j]))
-            # print('\n\n\t\t\tPOST STRIP : \n\n{}'.format(pageblocks[j]))
+            # pageblocks.append(' '.join(textdict['text']))
+            pageblocks.append(' '.join(useabletext))
 
         docblock = ' '.join(pageblocks)
-        print(docblock)
+        # print('\n\n\n\t\t\tDOCBLOCK:\n\n'.format(docblock))
         docsdata.append(docblockanalysis(docblock, sectionmarkers_new))
 
         # print('\n\n\nFINAL TEXT BLOCK: \n\n{}'.format(docblock))
 
         # with docblock string, create func to analye string and break using docmarkers
-
 
     #         print('\n\n\t\t\tPRE STRIP : \n\n{}'.format(pageblock))
     #         print('\n\n\t\t\tPOST STRIP : \n\n{}'.format(pageblock.strip()))
