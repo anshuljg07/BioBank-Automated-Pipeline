@@ -233,8 +233,9 @@ def main():
     # for j in [drivepath + i for i in pdflist]:
     #     print('\n\n{}\n\n'.format(j))
 
-
     # for filename in os.listdir(os.getcwd()):
     # call the read pdf funcs in "jpegtotext.py" prolly need to rename the file to
     # "biopsyscraper.py"
+
+
 main()
