@@ -66,71 +66,35 @@ class ScrapeDriver:
         noWS_docblock = ' '.join(re.findall(r'\w+|\S+', docblock)).lower()
         print('\n\n\n\t\t\t DOC BLOCK GENERATED FOR DOC#{}:\n\n{}'.format(self.i, noWS_docblock))
 
+        optionsdict = {}
+
         for z in range(len(self.sectionmarkers)):
-            # whichmarker 0
-            whichone = []
-            ifmultiple = [False, False]
             if (z == 0):
                 start = 0
+            if(isinstance(self.sectionmarkers[z][0], type([]))):
+                print('option = {}'.format(self.sectionmarkers[z]))
+                print('marker {} has multiple options'.format(z))
+                numoptions = len(self.sectionmarkers[z])
 
-            if(isinstance(self.sectionmarkers[z][0], list)):
-                if(noWS_docblock.find(self.sectionmarkers[z][0][0], start) > 0):
-                    start = noWS_docblock.find(self.sectionmarkers[z][0][0], start)
-                    whichmarker = 0
-                    whichone[0] = 0
-                    print('\n\n\nNEW SECTION of DOC{}: \t{} -> {} \t\t {} -> {}\n'.format(self.i,
-                                                                                          self.sectionmarkers[z][0], self.sectionmarkers[z][1], start, end))
-                    print('{}'.format(noWS_docblock[start +
-                                                    len(self.sectionmarkers[self.i][0]): end]))
-                else:
-                    start = noWS_docblock.find(self.sectionmarkers[z][0][1], start)
-                    whichmarker = 1
-                    whichone[0] = 1
+                for j, options in enumerate(self.sectionmarkers[z]):
+                    start = noWS_docblock.find(self.sectionmarkers[z][j][0], start)
+                    end = noWS_docblock.find(self.sectionmarkers[z][j][1], start)
+
+                    if(start > 0 and end > 0):
+                        optionsdict[z] = j
+                        sections.append(
+                            noWS_docblock[start + len(self.sectionmarkers[z][j][0]): end])
+                        print('\n\n\nNEW SECTION of DOC{}: \t{} -> {} \t\t {} -> {}\n'.format(self.i,
+                                                                                              self.sectionmarkers[z][j][0], self.sectionmarkers[z][j][1], start, end))
+                        break
+                    else:
+                        print('no matches found for section {}\n\n'.format(z))
             else:
                 start = noWS_docblock.find(self.sectionmarkers[z][0], start)
-
-            if(isinstance(self.sectionmarkers[z][1], list)):
-                if(noWS_docblock.find(self.sectionmarkers[z][1][0], start) > 0):
-                    end = noWS_docblock.find(self.sectionmarkers[z][1][0], start)
-                    whichone[1] = 0
-                else:
-                    end = noWS_docblock.find(self.sectionmarkers[z][1][1], start)
-                    whichone[1] = 1
-            else:
                 end = noWS_docblock.find(self.sectionmarkers[z][1], start)
-
-            # try:
-            #     start = noWS_docblock.find(self.sectionmarkers[z][0], start)
-            # except TypeError:
-            #     if(noWS_docblock.find(self.sectionmarkers[z][0][0], start) > 0):
-            #         start = noWS_docblock.find(self.sectionmarkers[z][0][0], start)
-            #         whichmarker = 0
-            #     else:
-            #         start = noWS_docblock.find(self.sectionmarkers[z][0][1], start)
-            #         whichmarker = 1
-            #
-            #
-            #     end = noWS_docblock.find(self.sectionmarkers[z][1], start)
-            # except TypeError:
-            #     if(noWS_docblock.find(self.sectionmarkers[z][1][0], start) > 0):
-            #         end = noWS_docblock.find(self.sectionmarkers[z][1][0], start)
-            #     else:
-            #         end = noWS_docblock.find(self.sectionmarkers[z][1][1], start)
-
-            print('\n\n\nNEW SECTION of DOC{}: \t{} -> {} \t\t {} -> {}\n'.format(self.i,
-                                                                                  self.sectionmarkers[z][0], self.sectionmarkers[z][1], start, end))
-
-            if(isinstance(self.sectionmarkers[self.i][0], list)):
-                print('{}'.format(
-                    noWS_docblock[start + len(self.sectionmarkers[self.i][0][whichmarker]): end]))
-                sections.append(
-                    noWS_docblock[start + len(self.sectionmarkers[z][0][whichmarker]): end])
-            else:
-                print('{}'.format(noWS_docblock[start + len(self.sectionmarkers[self.i][0]): end]))
+                print('\n\n\nNEW SECTION of DOC{}: \t{} -> {} \t\t {} -> {}\n'.format(self.i,
+                                                                                      self.sectionmarkers[z][0], self.sectionmarkers[z][1], start, end))
                 sections.append(noWS_docblock[start + len(self.sectionmarkers[z][0]): end])
-
-            # if extra symbols not needed (%symbols may be required):
-            # sections.append(' '.join(re.findall(r'\w+', noWS_docblock[start + len(markers[i][0]): end])))
 
         return sections
 
