@@ -146,7 +146,7 @@ def main():
             textdict = pytesseract.image_to_data(img, output_type=Output.DICT)
             pagemetadicts.append(textdict)  # added for NEW HEADER DESTRCUTION FEATURE
 
-            # FIND WAY TO GET RID OF HEADER --> TESTING SECTION
+            # FIND WAY TO GET RID OF HEADER --> FINALIZED
             useabletext = []
             for index, word in enumerate(textdict['text']):
                 if(textdict['top'][index] in range(80, 2040)):

@@ -139,9 +139,22 @@ class ScrapeDriver:
 
                 # produce ML generated boxes around selected text
                 self.tiff_to_textboxfiles(textdict, img, len(images))
+
+                # GET RID OF HEADER
+                useabletext = []
+                for index, word in enumerate(textdict['text']):
+                    if(textdict['top'][index] in range(80, 2040)):
+                        # print('"{}, top = {}"'.format(word, textdict['top'][index]))
+                        useabletext.append(word)
+
                 # produce dictionary of all "text" as ascertained by pytesseract
-                pageblocks.append(' '.join(textdict['text']))
+                pageblocks.append(' '.join(useabletext))
                 docblock = ' '.join(pageblocks)
+
+                # OLD FEATURE: produce dictionary of all "text" as ascertained by pytesseract
+                # pageblocks.append(' '.join(textdict['text']))
+                #
+                # docblock = ' '.join(pageblocks)
 
                 # print('\n\n\n\t\t\t DOC BLOCK GENERATED FOR DOC#{}:\n\n{}'.format(self.i, docblock))  # purely testing
 
@@ -180,7 +193,8 @@ def main():
     print('#doc = {}'.format(Drive.i))
 
     for i in Drive.docsdata:
-        print('DATA Dump for doc{}:\n{}\n\n'.format(counter, i))
+        # print('DATA Dump for doc{}:\n{}\n\n'.format(counter, i))
+        print('DATA dump for Doc{}:\n{}\n\n'.format(counter, i))
         counter += 1
 
     # sectionmarkers_new = [['clinical information provided :', 'specimen (s) received :'], ['1 :', '2 :'], ['2 :', '3 :'], ['3 :', 'final diagnosis'], ['kidney , biopsy :', 'note :'], ['note :', 'light microscopy :'], ['light microscopy :', 'immunofluorescence microscopy :'], ['immunofluorescence microscopy :', 'electron microscopy :'], [
