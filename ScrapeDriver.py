@@ -52,7 +52,7 @@ class ScrapeDriver:
         else:
             return False
 
-    def tiff_to_textboxfiles(self, pageinfodict, img, numpages):
+    def tiff_to_textboxfiles(self, pageinfodict, img, numpages, uniqueID):
         n_boxes = len(pageinfodict['text'])
         for k in range(n_boxes):
             if int(float(pageinfodict['conf'][k])) > 60:
@@ -62,6 +62,8 @@ class ScrapeDriver:
 
         isWritten = cv2.imwrite(
             'TEXTBOX_tiffs/Doc{}/TextBoxDoc{}Page{}.tiff'.format(str(self.i), str(self.i), str(self.j)), img)
+        isWritten = cv2.imwrite(
+            'TEXTBOX_tiffs/{}/TextBox{}Page{}.tiff'.format(uniqueID, uniqueID, str(self.j)), img)
 
     def docblockanalysis(self, docblock):
         sections = []
@@ -135,13 +137,9 @@ class ScrapeDriver:
 
                 print('{}\n'.format(noWS_docblock[start + len(self.sectionmarkers[z][0]): end]))
 
-        print('\n')
-        for i in sections:
-            print('p>:\t{}\n'.format(i))
-
         return sections
 
-    def Scrape(self, filename):
+    def Scrape(self, filename, uniqueID):
         pageblocks = []
         # print('entered scrape')
 
@@ -158,17 +156,18 @@ class ScrapeDriver:
                 # print('\n\nfailed try where folders are made \n\n')
                 pass
             try:
-                os.mkdir('TIFFS/Doc{}'.format(self.i))
-                os.mkdir('TEXTBOX_tiffs/Doc{}'.format(self.i))
+                # os.mkdir('TIFFS/Doc{}'.format(self.i))
+                # os.mkdir('TEXTBOX_tiffs/Doc{}'.format(self.i))
+                os.mkdir('TIFFS/{}'.format(uniqueID))
+                os.mkdir('TEXTBOX_tiffs/{}'.format(uniqueID))
             except:
                 pass
                 # print('\n\nfailed try where subfoldersare made\n\n')
 
-                # print('entered scrape')
-
             for j in range(len(images)):  # iterate through images and save them locally in KUH2022 as .tiffs
-                images[j].save('TIFFS/Doc{}/Doc{}page{}.tiff'.format(str(self.i),
-                                                                     str(self.i), str(j)), 'TIFF', quality=100)
+                # images[j].save('TIFFS/Doc{}/Doc{}page{}.tiff'.format(str(self.i), str(self.i), str(j)), 'TIFF', quality=100)
+                images[j].save('TIFFS/{}/{}page{}.tiff'.format(uniqueID,
+                                                               uniqueID, str(j)), 'TIFF', quality=100)
 
             for j in range(len(images)):  # 2nd iteration to begin the scraping
                 self.j = j
@@ -176,13 +175,14 @@ class ScrapeDriver:
                     userin = ''
 
                 # "i" will be passed in, i will be generated in main
-                img = cv2.imread(
-                    'TIFFS/Doc{}/Doc{}page{}.tiff'.format(str(self.i), str(self.i), str(self.j)))
+                # img = cv2.imread('TIFFS/Doc{}/Doc{}page{}.tiff'.format(str(self.i), str(self.i), str(self.j)))
+                img = cv2.imread('TIFFS/{}/{}page{}.tiff'.format(uniqueID, uniqueID, str(self.j)))
+
                 # produce pytesseract ML text dictionary
                 textdict = pytesseract.image_to_data(img, output_type=Output.DICT)
 
                 # produce ML generated boxes around selected text
-                self.tiff_to_textboxfiles(textdict, img, len(images))
+                self.tiff_to_textboxfiles(textdict, img, len(images), uniqueID)
 
                 # GET RID OF HEADER
                 useabletext = []
@@ -225,8 +225,8 @@ class ScrapeDriver:
                 if(nextdoc.lower() in ['y', 'yes']):
                     # print('\n\t\tscraping {}\n'.format(path + extension))
                     print('\n\t\tscraping {}\n'.format(uniqueID))
-                    self.docsread.append(path)
-                    self.Scrape(doc)  # UNCOMMENT!!!!!!!!
+                    self.docsread.append(uniqueID)
+                    self.Scrape(doc, uniqueID)  # UNCOMMENT!!!!!!!!
                     self.i += 1
         # pdflist = os.listdir(os.getcwd())
         # for j in [homepath + i for i in pdflist]:
