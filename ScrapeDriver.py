@@ -11,7 +11,7 @@ class ScrapeDriver:
         self.drivepath = '/Volumes/MoledinaLab-CC1032-MEDINT/Biobank 27890/Pathology Report PDF/'
         self.homepath = '/Users/anshulgowda/Documents/CODE/KUH2022/'
         self.pdfs = []
-        self.sectionmarkers = [['clinical information provided :', 'specimen (s) received :'], [['final diagnosis ', 'note :'], ['final diagnosis ', 'light microscopy :'], ['final diagnosis ', 'pathologist :']], [['light microscopy :', 'immunofluorescence microscopy :'], ['light microscopy :', 'immunofluorescence :'], ['light microscopy :', 'electron microscopy :'], ['light microscopy :', 'gross description :']], [['immunofluorescence microscopy :', 'electron microscopy :'], ['immunofluorescence :', 'electron microscopy :'], ['immunofluorescence microscopy :', 'pathologist :']], [
+        self.sectionmarkers = [['clinical information provided :', 'specimen (s) received :'], [['final diagnosis ', 'note :'], ['final diagnosis ', 'light microscopy :'], ['final diagnosis ', 'pathologist :']], [['light microscopy :', 'immunofluorescence microscopy :'], ['light microscopy :', 'immunofluorescence :'], ['light microscopy :', 'electron microscopy :'], ['light microscopy :', 'pathologist :']], [['immunofluorescence microscopy :', 'electron microscopy :'], ['immunofluorescence :', 'electron microscopy :'], ['immunofluorescence microscopy :', 'pathologist :']], [
             'electron microscopy :', 'pathologist :'], ['pathologist :', '* report electronically signed out *'], [['gross description :', 'frozen /intraoperative diagnosis : ()'], ['gross description :', 'summary of stains performed and reviewed']]]
         self.i = 0
         self.j = 0
@@ -92,10 +92,27 @@ class ScrapeDriver:
                         print('\nNEW SECTION of DOC{}: \t{} -> {} \t\t {} -> {}'.format(self.i,
                                                                                         self.sectionmarkers[z][j][0], self.sectionmarkers[z][j][1], start, end))
                         break
+
+                    # to account for when "Gross Description:" occurs but no other headers follow
+                    if(start > 0 and end < 0 and self.sectionmarkers[z][j][0] == "gross description :" and j == len(self.sectionmarkers[z]) - 1):
+                        sections.append(
+                            noWS_docblock[start + len(self.sectionmarkers[z][j][0]): end])
+                        break
+                    if(start < 0 and self.sectionmarkers[z][j][0] != "gross description :" and j == len(self.sectionmarkers[z]) - 1):
+                        sections.append(' ')
+                        start = oldstart
+                        break
+
                     if(start < 0):
                         start = oldstart  # reset start to a non-negative number
-                if(start < 0 or end < 0):
-                    print('both start and end less than zero')
+
+                # if(start < 0 or end < 0):
+                #     sections.append(' ')
+                #     start = oldstart
+                #     self.error[self.i] = [self.docsread[self.i], self.sectionmarkers[z], start, end]
+
+                if(start < 0 and end < 0):
+                    sections.append(' ')
                     start = oldstart
                     self.error[self.i] = [self.docsread[self.i], self.sectionmarkers[z], start, end]
 
@@ -111,10 +128,16 @@ class ScrapeDriver:
                 if(start < 0 or end < 0):
                     start = oldstart
                     self.error[self.i] = [self.docsread[self.i], self.sectionmarkers[z], start, end]
+                    sections.append(' ')
+                    continue
 
                 sections.append(noWS_docblock[start + len(self.sectionmarkers[z][0]): end])
 
                 print('{}\n'.format(noWS_docblock[start + len(self.sectionmarkers[z][0]): end]))
+
+        print('\n')
+        for i in sections:
+            print('p>:\t{}\n'.format(i))
 
         return sections
 
