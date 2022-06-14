@@ -11,11 +11,15 @@ class ScrapeDriver:
         self.drivepath = '/Volumes/MoledinaLab-CC1032-MEDINT/Biobank 27890/Pathology Report PDF/'
         self.homepath = '/Users/anshulgowda/Documents/CODE/KUH2022/'
         self.pdfs = []
-        self.sectionmarkers = [['clinical information provided :', 'specimen (s) received :'], ['final diagnosis kidney , biopsy :', 'note :'], ['light microscopy :', 'immunofluorescence microscopy :'], ['immunofluorescence microscopy :', 'electron microscopy :'], [
+        self.sectionmarkers = [['clinical information provided :', 'specimen (s) received :'], [['final diagnosis ', 'note :'], ['final diagnosis ', 'light microscopy :'], ['final diagnosis ', 'pathologist :']], [['light microscopy :', 'immunofluorescence microscopy :'], ['light microscopy :', 'immunofluorescence :'], ['light microscopy :', 'electron microscopy :'], ['light microscopy :', 'gross description :']], [['immunofluorescence microscopy :', 'electron microscopy :'], ['immunofluorescence :', 'electron microscopy :'], ['immunofluorescence microscopy :', 'pathologist :']], [
             'electron microscopy :', 'pathologist :'], ['pathologist :', '* report electronically signed out *'], [['gross description :', 'frozen /intraoperative diagnosis : ()'], ['gross description :', 'summary of stains performed and reviewed']]]
         self.i = 0
         self.j = 0
         self.docsdata = []
+        self.error = {}
+        self.docsread = []
+        self.docstesting = ['0099', '0013', '0016', '0025', '0028', '0059', '0073',
+                            '0107', '0128', '0161', '0189', '0213', '0276', '0282', '0302', '0306', '0307']
 
     def CreatePatch(self):
         try:
@@ -64,7 +68,7 @@ class ScrapeDriver:
         section_dict = {}
 
         noWS_docblock = ' '.join(re.findall(r'\w+|\S+', docblock)).lower()
-        print('\n\n\n\t\t\t DOC BLOCK GENERATED FOR DOC#{}:\n\n{}'.format(self.i, noWS_docblock))
+        print('\n\n\n\t\t\t DOC BLOCK GENERATED FOR DOC#{}:\n{}'.format(self.i, noWS_docblock))
 
         optionsdict = {}
 
@@ -77,6 +81,7 @@ class ScrapeDriver:
                 numoptions = len(self.sectionmarkers[z])
 
                 for j, options in enumerate(self.sectionmarkers[z]):
+                    oldstart = start
                     start = noWS_docblock.find(self.sectionmarkers[z][j][0], start)
                     end = noWS_docblock.find(self.sectionmarkers[z][j][1], start)
 
@@ -84,23 +89,38 @@ class ScrapeDriver:
                         optionsdict[z] = j
                         sections.append(
                             noWS_docblock[start + len(self.sectionmarkers[z][j][0]): end])
-                        print('\n\n\nNEW SECTION of DOC{}: \t{} -> {} \t\t {} -> {}\n'.format(self.i,
-                                                                                              self.sectionmarkers[z][j][0], self.sectionmarkers[z][j][1], start, end))
+                        print('\nNEW SECTION of DOC{}: \t{} -> {} \t\t {} -> {}'.format(self.i,
+                                                                                        self.sectionmarkers[z][j][0], self.sectionmarkers[z][j][1], start, end))
                         break
-                    else:
-                        print('no matches found for section {}\n\n'.format(z))
+                    if(start < 0):
+                        start = oldstart  # reset start to a non-negative number
+                if(start < 0 or end < 0):
+                    print('both start and end less than zero')
+                    start = oldstart
+                    self.error[self.i] = [self.docsread[self.i], self.sectionmarkers[z], start, end]
+
+                # purely testing
+                print('{}\n'.format(noWS_docblock[start + len(self.sectionmarkers[z][j][0]): end]))
+
             else:
+                oldstart = start
                 start = noWS_docblock.find(self.sectionmarkers[z][0], start)
                 end = noWS_docblock.find(self.sectionmarkers[z][1], start)
-                print('\n\n\nNEW SECTION of DOC{}: \t{} -> {} \t\t {} -> {}\n'.format(self.i,
-                                                                                      self.sectionmarkers[z][0], self.sectionmarkers[z][1], start, end))
+                print('\nNEW SECTION of DOC{}: \t{} -> {} \t\t {} -> {}'.format(self.i,
+                                                                                self.sectionmarkers[z][0], self.sectionmarkers[z][1], start, end))
+                if(start < 0 or end < 0):
+                    start = oldstart
+                    self.error[self.i] = [self.docsread[self.i], self.sectionmarkers[z], start, end]
+
                 sections.append(noWS_docblock[start + len(self.sectionmarkers[z][0]): end])
+
+                print('{}\n'.format(noWS_docblock[start + len(self.sectionmarkers[z][0]): end]))
 
         return sections
 
     def Scrape(self, filename):
         pageblocks = []
-        print('entered scrape')
+        # print('entered scrape')
 
         if(self.DestroyPatch):
             # open specified file, presumably generated by PullFiles
@@ -112,15 +132,16 @@ class ScrapeDriver:
                 os.mkdir('TIFFS')
                 os.mkdir('TEXTBOX_tiffs')
             except:
-                print('\n\nfailed try where folders are made \n\n')
+                # print('\n\nfailed try where folders are made \n\n')
                 pass
             try:
                 os.mkdir('TIFFS/Doc{}'.format(self.i))
                 os.mkdir('TEXTBOX_tiffs/Doc{}'.format(self.i))
             except:
-                print('\n\nfailed try where subfoldersare made\n\n')
+                pass
+                # print('\n\nfailed try where subfoldersare made\n\n')
 
-            print('entered scrape')
+                # print('entered scrape')
 
             for j in range(len(images)):  # iterate through images and save them locally in KUH2022 as .tiffs
                 images[j].save('TIFFS/Doc{}/Doc{}page{}.tiff'.format(str(self.i),
@@ -165,15 +186,25 @@ class ScrapeDriver:
     def AnalyzePdfs(self):
         self.i = 0
         for doc in self.pdfs:
-            userin = input('continue {} -> {}'.format(self.i, self.i+1))
-            if(userin.lower() in ['n', 'no']):
-                return
+            # userin=input('continue {} -> {}'.format(self.i, self.i+1))
+            # if(userin.lower() in ['n', 'no']):
+            #     return
             path, extension = os.path.splitext(doc)
-            print('extension = {}\n'.format(extension))
-            if(extension.lower() == '.pdf'):
-                print('\n\t\tscraping {}\n'.format(path + extension))
-                self.Scrape(doc)  # UNCOMMENT!!!!!!!!
-                self.i += 1
+            # print('extension = {}\n'.format(extension))
+
+            # FIND WAY TO GET ID FROM filename
+            uniqueID = path[path.find('-', 4)+1:path.find('_')]
+            if (len(uniqueID) < 4):
+                uniqueID = '0' + uniqueID
+
+            if(extension.lower() == '.pdf' and uniqueID in self.docstesting):
+                nextdoc = input('Ready for "Report {}"\n?> '.format(uniqueID))
+                if(nextdoc.lower() in ['y', 'yes']):
+                    # print('\n\t\tscraping {}\n'.format(path + extension))
+                    print('\n\t\tscraping {}\n'.format(uniqueID))
+                    self.docsread.append(path)
+                    self.Scrape(doc)  # UNCOMMENT!!!!!!!!
+                    self.i += 1
         # pdflist = os.listdir(os.getcwd())
         # for j in [homepath + i for i in pdflist]:
         #     # double check this works
@@ -190,12 +221,16 @@ def main():
     print('\n\n\t\t SUMMARY: number of docs read = ({}) == ({})\n\n'.format(len(Drive.docsdata), Drive.i))
     counter = 0
 
-    print('#doc = {}'.format(Drive.i))
+    # print('#doc = {}'.format(Drive.i))
+    userin = input("ready for error output?\n?>")
+    if(userin.lower() in ['y', 'yes']):
+        for key, value in Drive.error.items():
+            print(value)
 
-    for i in Drive.docsdata:
-        # print('DATA Dump for doc{}:\n{}\n\n'.format(counter, i))
-        print('DATA dump for Doc{}:\n{}\n\n'.format(counter, i))
-        counter += 1
+    # for i in Drive.docsdata:
+    #     # print('DATA Dump for doc{}:\n{}\n\n'.format(counter, i))
+    #     print('DATA dump for Doc{}:\n{}\n\n'.format(counter, i))
+    #     counter += 1
 
     # sectionmarkers_new = [['clinical information provided :', 'specimen (s) received :'], ['1 :', '2 :'], ['2 :', '3 :'], ['3 :', 'final diagnosis'], ['kidney , biopsy :', 'note :'], ['note :', 'light microscopy :'], ['light microscopy :', 'immunofluorescence microscopy :'], ['immunofluorescence microscopy :', 'electron microscopy :'], [
     #     'electron microscopy :', 'surgical pathology report'], ['surgical pathology report', 'pathologist :'], ['pathologist :', 'gross description :'], ['1 .', '2 .'], ['2 .', '3 .'], ['3 .', 'frozen /intraoperative diagnosis : ()'], ['frozen /intraoperative diagnosis : ()', '-999999999']]
