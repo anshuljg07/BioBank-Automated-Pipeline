@@ -228,13 +228,6 @@ class ScrapeDriver:
                     self.docsread.append(uniqueID)
                     self.Scrape(doc, uniqueID)  # UNCOMMENT!!!!!!!!
                     self.i += 1
-        # pdflist = os.listdir(os.getcwd())
-        # for j in [homepath + i for i in pdflist]:
-        #     # double check this works
-        #     path, extension = os.path.splitext()
-        #     if(extension.lower() == '.pdf'):
-        #         Scrape(j)
-        #         pass  # calling Scrape on the individual pdfs
 
 
 def main():
@@ -249,29 +242,6 @@ def main():
     if(userin.lower() in ['y', 'yes']):
         for key, value in Drive.error.items():
             print(value)
-
-    # for i in Drive.docsdata:
-    #     # print('DATA Dump for doc{}:\n{}\n\n'.format(counter, i))
-    #     print('DATA dump for Doc{}:\n{}\n\n'.format(counter, i))
-    #     counter += 1
-
-    # sectionmarkers_new = [['clinical information provided :', 'specimen (s) received :'], ['1 :', '2 :'], ['2 :', '3 :'], ['3 :', 'final diagnosis'], ['kidney , biopsy :', 'note :'], ['note :', 'light microscopy :'], ['light microscopy :', 'immunofluorescence microscopy :'], ['immunofluorescence microscopy :', 'electron microscopy :'], [
-    #     'electron microscopy :', 'surgical pathology report'], ['surgical pathology report', 'pathologist :'], ['pathologist :', 'gross description :'], ['1 .', '2 .'], ['2 .', '3 .'], ['3 .', 'frozen /intraoperative diagnosis : ()'], ['frozen /intraoperative diagnosis : ()', '-999999999']]
-    #
-    # drivepath = '/Volumes/MoledinaLab-CC1032-MEDINT/Biobank 27890/Pathology Report PDF/'
-    # homepath = '/Users/anshulgowda/Documents/CODE/KUH2022/'
-    # print('working directory: {}'.format(os.getcwd()))
-    # os.chdir('/Volumes/MoledinaLab-CC1032-MEDINT/Biobank 27890/Pathology Report PDF/')
-    # # os.chdir('/Users/anshulgowda/Documents/CODE/KUH2022/')
-    # print('working directory: {}'.format(os.getcwd()))
-    #
-    # pdflist = os.listdir(os.getcwd())
-    # for j in [drivepath + i for i in pdflist]:
-    #     print('\n\n{}\n\n'.format(j))
-
-    # for filename in os.listdir(os.getcwd()):
-    # call the read pdf funcs in "jpegtotext.py" prolly need to rename the file to
-    # "biopsyscraper.py"
 
 
 main()
