@@ -4,6 +4,8 @@ import pytesseract
 from pytesseract import Output
 import os
 import re
+import pandas as pd
+import openpyxl
 
 
 class ScrapeDriver:
@@ -70,7 +72,7 @@ class ScrapeDriver:
         section_dict = {}
 
         noWS_docblock = ' '.join(re.findall(r'\w+|\S+', docblock)).lower()
-        print('\n\n\n\t\t\t DOC BLOCK GENERATED FOR DOC#{}:\n{}'.format(self.i, noWS_docblock))
+        # print('\n\n\n\t\t\t DOC BLOCK GENERATED FOR DOC#{}:\n{}'.format(self.i, noWS_docblock)) #uncomment for docblock
 
         optionsdict = {}
 
@@ -78,8 +80,8 @@ class ScrapeDriver:
             if (z == 0):
                 start = 0
             if(isinstance(self.sectionmarkers[z][0], type([]))):
-                print('option = {}'.format(self.sectionmarkers[z]))
-                print('marker {} has multiple options'.format(z))
+                # print('option = {}'.format(self.sectionmarkers[z]))
+                # print('marker {} has multiple options'.format(z))
                 numoptions = len(self.sectionmarkers[z])
 
                 for j, options in enumerate(self.sectionmarkers[z]):
@@ -91,8 +93,9 @@ class ScrapeDriver:
                         optionsdict[z] = j
                         sections.append(
                             noWS_docblock[start + len(self.sectionmarkers[z][j][0]): end])
-                        print('\nNEW SECTION of DOC{}: \t{} -> {} \t\t {} -> {}'.format(self.i,
-                                                                                        self.sectionmarkers[z][j][0], self.sectionmarkers[z][j][1], start, end))
+                        # uncomment to print section shit
+                        # print('\nNEW SECTION of DOC{}: \t{} -> {} \t\t {} -> {}'.format(self.i,
+                        # self.sectionmarkers[z][j][0], self.sectionmarkers[z][j][1], start, end))
                         break
 
                     # to account for when "Gross Description:" occurs but no other headers follow
@@ -118,15 +121,15 @@ class ScrapeDriver:
                     start = oldstart
                     self.error[self.i] = [self.docsread[self.i], self.sectionmarkers[z], start, end]
 
-                # purely testing
-                print('{}\n'.format(noWS_docblock[start + len(self.sectionmarkers[z][j][0]): end]))
+                # uncomment to print string added to section
+                # print('{}\n'.format(noWS_docblock[start + len(self.sectionmarkers[z][j][0]): end]))
 
             else:
                 oldstart = start
                 start = noWS_docblock.find(self.sectionmarkers[z][0], start)
                 end = noWS_docblock.find(self.sectionmarkers[z][1], start)
-                print('\nNEW SECTION of DOC{}: \t{} -> {} \t\t {} -> {}'.format(self.i,
-                                                                                self.sectionmarkers[z][0], self.sectionmarkers[z][1], start, end))
+                # print('\nNEW SECTION of DOC{}: \t{} -> {} \t\t {} -> {}'.format(self.i,
+                # self.sectionmarkers[z][0], self.sectionmarkers[z][1], start, end))
                 if(start < 0 or end < 0):
                     start = oldstart
                     self.error[self.i] = [self.docsread[self.i], self.sectionmarkers[z], start, end]
@@ -135,7 +138,7 @@ class ScrapeDriver:
 
                 sections.append(noWS_docblock[start + len(self.sectionmarkers[z][0]): end])
 
-                print('{}\n'.format(noWS_docblock[start + len(self.sectionmarkers[z][0]): end]))
+                # print('{}\n'.format(noWS_docblock[start + len(self.sectionmarkers[z][0]): end]))
 
         return sections
 
@@ -220,14 +223,28 @@ class ScrapeDriver:
             if (len(uniqueID) < 4):
                 uniqueID = '0' + uniqueID
 
-            if(extension.lower() == '.pdf' and uniqueID in self.docstesting):
-                nextdoc = input('Ready for "Report {}"\n?> '.format(uniqueID))
-                if(nextdoc.lower() in ['y', 'yes']):
-                    # print('\n\t\tscraping {}\n'.format(path + extension))
-                    print('\n\t\tscraping {}\n'.format(uniqueID))
-                    self.docsread.append(uniqueID)
-                    self.Scrape(doc, uniqueID)  # UNCOMMENT!!!!!!!!
-                    self.i += 1
+            # if(extension.lower() == '.pdf' and uniqueID in self.docstesting):
+            if(extension.lower() == '.pdf' and uniqueID not in self.docsread):
+                # nextdoc = input('Ready for "Report {}"\n?> '.format(uniqueID))
+                # if(nextdoc.lower() in ['y', 'yes']):
+                # print('\n\t\tscraping {}\n'.format(path + extension))
+                print('\n\t\tscraping {}\n'.format(uniqueID))
+                self.docsread.append(uniqueID)
+                self.Scrape(doc, uniqueID)  # UNCOMMENT!!!!!!!!
+                self.i += 1
+
+    def WritetoXLSX(self):
+        self.DestroyPatch()
+        try:
+            os.mkdir('xlsfiles')
+        except:
+            pass
+
+        rownames = ['clinical information provided', 'final diagnosis', 'light microscopy',
+                    'immunofluorescence microscopy', 'electron microscopy', 'pathologist', 'gross description']
+        biopsydf = pd.DataFrame(self.docsdata, index=self.docsread, columns=rownames)
+        biopsydf.to_excel('xlsfiles/biobankrepo.xlsx', sheet_name='biobank scraped pdfs')
+        return
 
 
 def main():
@@ -235,6 +252,7 @@ def main():
     Drive.PullFiles()  # load files into pdfs attribute, WORKS
     Drive.AnalyzePdfs()
     print('\n\n\t\t SUMMARY: number of docs read = ({}) == ({})\n\n'.format(len(Drive.docsdata), Drive.i))
+    Drive.WritetoXLSX()
     counter = 0
 
     # print('#doc = {}'.format(Drive.i))
