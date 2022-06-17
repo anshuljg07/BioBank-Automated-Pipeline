@@ -6,6 +6,7 @@ import os
 import re
 import pandas as pd
 import openpyxl
+import sqlite3
 
 
 class ScrapeDriver:
@@ -18,6 +19,7 @@ class ScrapeDriver:
         self.i = 0
         self.j = 0
         self.docsdata = []
+        self.dbconnection = None
         self.error = {}
         self.docsread = []
         self.docstesting = ['0099', '0013', '0016', '0025', '0028', '0059', '0073',
@@ -240,11 +242,36 @@ class ScrapeDriver:
         except:
             pass
 
-        rownames = ['clinical information provided', 'final diagnosis', 'light microscopy',
-                    'immunofluorescence microscopy', 'electron microscopy', 'pathologist', 'gross description']
+        for i, data in enumerate(self.docsdata):
+            data.insert(0, self.docsread[i])
+
+        # rownames = ['clinical information provided', 'final diagnosis', 'light microscopy',
+        #             'immunofluorescence microscopy', 'electron microscopy', 'pathologist', 'gross description']
+        rownames = ['sequenceno', 'clin_history', 'final diagnosis', 'lm_results',
+                    'if_results', 'em_results', 'pathologist', 'gross description']
         biopsydf = pd.DataFrame(self.docsdata, index=self.docsread, columns=rownames)
         biopsydf.to_excel('xlsfiles/biobankrepo.xlsx', sheet_name='biobank scraped pdfs')
         return
+
+    def Create_DB_connection(self, db_file):
+        try:
+            os.mkdir('sqlite')
+        except:
+            pass
+        try:
+            os.mkdir('sqlite/db')
+        except:
+            pass
+
+        conn = None
+        try:
+            conn = sqlite3.connect(db_file)
+            print(sqlite3.version)
+
+        except Error as e:
+            print('DB connection error {}'.format(e))
+
+        self.dbconnection = conn
 
 
 def main():
@@ -253,13 +280,15 @@ def main():
     Drive.AnalyzePdfs()
     print('\n\n\t\t SUMMARY: number of docs read = ({}) == ({})\n\n'.format(len(Drive.docsdata), Drive.i))
     Drive.WritetoXLSX()
-    counter = 0
+    print('Wrote out to xlsx files')
+    # Drive.Create_DB_connection('sqlite/db/BioBank.db')
+    # counter = 0
 
     # print('#doc = {}'.format(Drive.i))
-    userin = input("ready for error output?\n?>")
-    if(userin.lower() in ['y', 'yes']):
-        for key, value in Drive.error.items():
-            print(value)
+    # userin = input("ready for error output?\n?>")
+    # if(userin.lower() in ['y', 'yes']):
+    #     for key, value in Drive.error.items():
+    #         print(value)
 
 
 main()
