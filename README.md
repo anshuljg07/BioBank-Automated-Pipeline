@@ -3,15 +3,17 @@
 ![Python application](https://github.com/stephenbaek/imagiqfl/workflows/Python%20application/badge.svg)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-This repository houses the ScrapeDriver developed for the Yale University School of Medicine's BioBank project and the associated NLP algorithim. The goals for the ScrapeDriver and NLP alogrithim used in tandem are:
+This repository houses the ScrapeDriver developed for the Yale University School of Medicine's BioBank project through CTRA (Clinical and Translational Research Accelerator) and the associated NLP algorithim. The goals for the ScrapeDriver and NLP alogrithim used in tandem are:
 
 - Offer accurate, efficient, and scalable text-scraping of Yale NewHaven Health Pathology pdf reports.
 - Convert "dirty" data into usable medically relevant data that allows for the testing for the presence of statistically significant biological trends.
 - Offer an alternative to current labor intensive scraping and analysis techniques.
 
 The Yale University School of Medicine's KUH program is funded by the NIH
-<p align="center">
-  <img src="https://www.lifespan.io/wp-content/uploads/2020/06/Yale-School-of-Medicine.png" alt='imagiq-logo'>
+
+<p float="center">
+  <img src="https://www.lifespan.io/wp-content/uploads/2020/06/Yale-School-of-Medicine.png" width="461" height="277"alt='YaleSoM logo'/>
+  <img src="https://ysm-res.cloudinary.com/image/upload/c_limit,f_auto,h_630,q_auto,w_1200/v1/yms/prod/4ab3b4a4-a6aa-40a0-99eb-1118be087ddd" width="461" height="277"alt="CTRA logo"/> 
 </p>
 
 # Getting Started
