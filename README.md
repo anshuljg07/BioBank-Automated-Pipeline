@@ -33,6 +33,11 @@ After the new environment is created, activate it by typing:
 ```
 conda activate BioBankScraper
 ```
+Once the environemnt is activated you will have access to the base packages through Anaconda and can install project specific packages, which we will talk about soon. To exit out of the environment type:
+```
+conda deactivate BioBankScraper
+```
+
 ### Dependent Packages
 Next is to install the dependent packages (each with their own relevant dependencies, which Conda will take care off):
 #### 1) Opencv or cv2
@@ -100,6 +105,9 @@ This should fix the problem, but if this issue still exists then there is most l
 
 ### Using VirtualEnv
 TODO: Add a description here.
+
+### Local Routing/Directory Setup
+ScrapeDriver.py will automatically access the shared drive where the 
 
 
 # The Team
