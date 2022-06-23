@@ -252,6 +252,7 @@ class ScrapeDriver:
     then it will generate an xlsx with the proper row and column format.
     '''
 
+    # APPEND FEATURE NOT TESTED
     def WritetoXLSX(self):
         rownames = ['sequenceno', 'clin_history', 'final diagnosis', 'lm_results',
                     'if_results', 'em_results', 'pathologist', 'gross description']
@@ -308,7 +309,22 @@ class ScrapeDriver:
         for doc in os.listdir(os.getcwd()):
             os.rename('{}/{}'.format(self.drivepath, doc), '{}/{}'.format(self.procesedpath, doc))
 
+    # NOT TESTED - DELETES BOX TIFFS and TIFF transition files
+    def CleanUp(self):
+        self.DestroyPatch()
+
+        try:  # destroy textbox tiffs
+            os.rmdir('TEXTBOX_tiffs')
+        except OSError as e:
+            print('Error: {} : {}'format('TEXTBOX_tiffs', e.strerror))
+
+        try:  # destory transition .tiff files
+            os.rmdir('TIFFS')
+        except OSError as e:
+            print('Error: {} : {}'.format('TIFFS', e.strerror))
+
     # future db solution to replace xlsx file solution
+
     def Create_DB_connection(self, db_file):
         try:
             os.mkdir('sqlite')
@@ -337,6 +353,7 @@ def main():
     print('\n\n\t\t SUMMARY: number of docs read = ({}) == ({})\n\n'.format(len(Drive.docsdata), Drive.i))
     Drive.WritetoXLSX()
     print('Wrote out to xlsx files')
+    Drive.CleanUp()
 
     # Drive.Create_DB_connection('sqlite/db/BioBank.db')
     # counter = 0
