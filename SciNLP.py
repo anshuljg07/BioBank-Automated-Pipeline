@@ -42,6 +42,9 @@ for token in doc_large:
     print('token = {}\t\t head = {}\t\t children = {}'.format(
         token.text, token.head.text, list(token.children)))
 
+for ent in doc_large.ents:
+    print('"{}" head = {} children'.format(ent.text, ent.head))
+
 
 # DISPLAY ENTITIES USING DISPLACY
 # displacy.serve(doc_large, style="ent")
