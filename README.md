@@ -4,8 +4,8 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 --------------------------------------------------------------------------------
 <p float="center">
-  <img src="https://www.lifespan.io/wp-content/uploads/2020/06/Yale-School-of-Medicine.png" width="450" height="277"alt='YaleSoM logo'/>
-  <img src="https://ysm-res.cloudinary.com/image/upload/c_limit,f_auto,h_630,q_auto,w_1200/v1/yms/prod/4ab3b4a4-a6aa-40a0-99eb-1118be087ddd" width="450" height="277"alt="CTRA logo"/> 
+  <img src="https://www.lifespan.io/wp-content/uploads/2020/06/Yale-School-of-Medicine.png" width="350" height="215"alt='YaleSoM logo'/>
+  <img src="https://ysm-res.cloudinary.com/image/upload/c_limit,f_auto,h_630,q_auto,w_1200/v1/yms/prod/4ab3b4a4-a6aa-40a0-99eb-1118be087ddd" width="350" height="215"alt="CTRA logo"/> 
 </p>
 
 --------------------------------------------------------------------------------
