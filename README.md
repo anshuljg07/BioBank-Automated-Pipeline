@@ -139,6 +139,22 @@ AND
 The `Staging` directory contains the Biopsy Reports that have not been scraped by the script, and the `Analyzed` directory contains the Biopsy Reports that have been sucessfully scraped. The movement of files from the `Staging` to the `Analyzed` directory is handled by the script.
 
 #### Setting up a Local Project
+To use this script locally, you must first make a copy of the source code stored here in the `KUH 2022` repository. However, you must first make a local directory to house the source code. Make sure to note down the full path of this directory. Once you have made this directory navigate to this directory in your terminal and clone the source code using this command:
+```
+git clone https://github.com/anshuljg07/KUH2022.git
+```
+This should have populated the newly made directory with the soure code files from the `KUH 2022` repository.
+
+#### Setting up Routing in ScrapeDriver.py
+The ScrapeDriver.py file was configured to work on Anshul's local machine, so it needs to be configured to work on your machine. To do this locate the attribute `homepath` located on line 16. It should look like this:
+```
+self.homepath = '/Users/anshulgowda/Documents/CODE/KUH2022/'
+```
+Set this variable to the directory you created that houses the cloned source code. Line 16 should now look like this:
+```
+self.homepath = {YOUR PATH GOES HERE}
+```
+
 
 
 ScrapeDriver.py will automatically access the shared drive where the 
