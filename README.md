@@ -60,7 +60,17 @@ The `openpyxl` package is a common and reliable engine used for read-in and writ
 ```
 conda install -c anaconda openpyxl
 ```
-#### 5) pdf2image (specifically the "convert_from_path" function)
+#### 5) Git
+`Git` is version-control system that allows developers to track changes in their code and to facilitate code collaboration. Specifically, we will use `Git` to create a local copy of the source code that you can run. If wanted Git can be used to save changes you make in the source code and can be stored in a remote Repository in GitHub which I will elaborate on next.
+
+To download Git type:
+```
+conda install -c anaconda git
+```
+#### 5.5) GitHub
+`GitHub` is an industry standard remote repository where developers save their code and facilitate collaboration on Open Source projects. Storing your code in GitHub is optional but it is highly reccomended. To make a GitHub account [CLICK HERE](https://github.com/join)
+
+#### 6) pdf2image (specifically the "convert_from_path" function)
 The `pdf2image` package is a efficient pdf to image converter that allows for conversion to most popular image extensions. .tiff format works best for `pytesseract` and .tiff conversions is a strength of `pdf2image`. 
 
 ```
@@ -72,7 +82,7 @@ pip install pdf2image
 ```
 When installing the `pdf2image` package the conda installation is always preferred, but the secondary pip installtion is provided if an `ImportError` arises. This error and solving it will be discussed later.
 
-#### 5.5) poppler
+#### 6.5) poppler
 The `poppler` package is an necessary python binding to the `poppler-cpp` (poppler C++) library. This library grants the ability to read, render, and modify pdf documents. While this project does make use of these features, the `pdf2image` package requires a linking between the 2 to function properly. This linking will be discussed later.
 ```
 brew install poppler
@@ -82,7 +92,7 @@ OR
 conda install -c conda-forge poppler
 ```
 While it is reccomended to use the conda installation when using conda environments, I have had `ImportErrors` when installing the poppler package through conda due to unsucessful linking mentioned earlier. 
-#### 5.55) Errors with pdf2image and poppler
+#### 6.55) Errors with pdf2image and poppler
 When setting up both the `pdf2image` and `poppler` binding I have had multiple set up issues. Specifically there is a very common `ImportError` that arises:
 ```
 Traceback (most recent call last):
@@ -107,6 +117,30 @@ This should fix the problem, but if this issue still exists then there is most l
 TODO: Add a description here.
 
 ### Local Routing/Directory Setup
+#### Connecting to the Shared Drive
+The BioBank is a remote directory stored in Shared Drive that is hosted by the Yale University Servers. To connect to the server hosting the ShareDrive you must either be connected to YaleSecure WiFi or establish a connection through `Cisco AnyConnect Secure Mobility Client`.
+
+#### (MAC OS) Accessing the Shared Drive
+To access the Shared Drive you must establish a connection to the Yale Server through the `Finder` application. In `Finder` select the `Go` tab and navigate to the `Connect to Server` option in the dropdown menu. It will prompt you to enter the address to the remote server. Enter:
+```
+smb://storage.yale.edu/home/MoledinaLab-CC1032-MEDINT
+```
+Once a secure connection is established you now have access to the full Shared Drive.
+
+#### (MAC OS) Accessing the BioBank
+To access the BioBank directories containing all of the PDF Biopsy Reports. In Mac OS the Shared Drive is stored in the `Volumes` directory in the `root` directory. There are two directories containing the PDF Biopsy Reports:
+```
+/Volumes/MoledinaLab-CC1032-MEDINT/Biobank 27890/Pathology Report PDF Staging
+```
+AND
+```
+/Volumes/MoledinaLab-CC1032-MEDINT/Biobank 27890/Pathology Report PDF Analyzed
+```
+The `Staging` directory contains the Biopsy Reports that have not been scraped by the script, and the `Analyzed` directory contains the Biopsy Reports that have been sucessfully scraped. The movement of files from the `Staging` to the `Analyzed` directory is handled by the script.
+
+#### Setting up a Local Project
+
+
 ScrapeDriver.py will automatically access the shared drive where the 
 
 
