@@ -8,6 +8,69 @@ from scispacy.linking import EntityLinker
 from openpyxl import load_workbook
 
 
+# iteration 1, before I understood how what kb_ents was
+def CUIsearch_temp(entity, nlp):
+    try:
+        first_cuid = entity._.kb_ents[0][0]
+        kb_entry = linker.kb.cui_to_entity[first_cuid]
+        if(None in [kb_entry.canonical_name, kb_entry.definition]):
+            print(fmt_str.format(entity.text, 'xxxxxxxx', 'NO ENTRY FOUND', 'NO DEF'))
+            subtext = entity.text
+            sub_doc = nlp(subtext)
+            sub_fmt_str = "\t{:<15} ~ {:<15} ~ {:<35}"
+            for token in sub_doc:
+                print(sub_fmt_str.format(
+                    token.text, token.head.text, '{}'.format(list(token.children))))
+        else:
+
+            print(fmt_str.format(entity.text, first_cuid,
+                                 kb_entry.canonical_name, kb_entry.definition[0:40] + "..."))
+
+    except IndexError:
+        kb_entry = None
+        print(fmt_str.format(entity.text, 'CUI INDERROR', 'NO ENTRY FOUND', 'NO DEF'))
+
+
+def CUIsearch(entity, nlp, fmt_str):
+    # check if matches exist in the knowledge base
+    if(len(entity._.kb_ents) != 0):
+        # take the first match (coincidentally the highest match score)
+        first_cuid = entity._.kb_ents[0][0]
+        query = linker.kb.cui_to_entity[first_cuid]
+        # if(None in [query.canonical_name, query.definition]):
+        if(None == query.definition):
+            for i, kb_entry in enumerate(entity._.kb_ents):
+                if i == 0:
+                    continue
+                cuid = kb_entry[0]
+                query = linker.kb.cui_to_entity[first_cuid]
+                # if(None in [query.canonical_name, query.definition]):
+                if(None == query.definition):
+                    tempfmt = "{:<15} | {:<20} | {:<11} | {:<6} | {:<5} | {:<5}"
+                    cui = kb_entry[0]
+                    match_score = kb_entry[1]
+                    print(tempfmt.format('NOT FOUND', entity.text, cui, match_score,
+                                         str(None != query.canonical_name), str(None != query.definition)))
+                    continue
+                else:
+                    print(fmt_str.format(entity.text, first_cuid,
+                                         query.canonical_name, query.definition[0:40] + "..."))
+                    return
+            print(fmt_str.format(entity.text, 'SEARCHED', 'NO ENTRY FOUND', 'NO DEF'))
+        else:
+            print(fmt_str.format(entity.text, first_cuid,
+                                 query.canonical_name, query.definition[0:40] + "..."))
+
+    else:  # no match found in kb, so no CUI/match confidence tuples in kb_ents
+        print(fmt_str.format(entity.text, 'xxxxxxxx', 'NO ENTRY FOUND', 'NO DEF'))
+        subtext = entity.text
+        sub_doc = nlp(subtext)
+        sub_fmt_str = "\t{:<15} ~ {:<15} ~ {:<35}"
+        for token in sub_doc:
+            print(sub_fmt_str.format(
+                token.text, token.head.text, '{}'.format(list(token.children))))
+
+
 dfs = pd.read_excel('xlsxfiles/biobankrepo.xlsx', sheet_name='biobank scraped pdfs')
 
 # print('data = {}'.format(dfs))
@@ -97,30 +160,54 @@ nlp.add_pipe("scispacy_linker", config={"resolve_abbreviations": True, "linker_n
 doc = nlp(" worsening renal insufficiency since 1 /2021, history of systemic therapy for metastatic pancreatic cancer. kidney , biopsy : - focal and segmental glomerulosclerosis , favor primary - diffuse acute tubular injury. - severe arterionephrosclerosis - acute tubular injury")
 linker = nlp.get_pipe("scispacy_linker")
 
-fmt_str = "{:<32} | {:<15} | {:<30} | {:<40}"
+fmt_str = "{:<25} | {:<15} | {:<20} | {:<40}"
 print(fmt_str.format("Entity", "1st CUI", "Canonical Name", "Definition"))
 
 for entity in doc.ents:
-    try:  # WEIRD error where ATI is repeated, but a CUI is only generated for the repeat instance
-        first_cuid = entity._.kb_ents[0][0]
-        kb_entry = linker.kb.cui_to_entity[first_cuid]
-    except IndexError:
-        print(fmt_str.format(entity.text, 'CUI INDERROR', 'NO ENTRY FOUND', 'NO DEF'))
-    # CUI generated but not found in db, examine word parts inside?
-    if(None in [kb_entry.canonical_name, kb_entry.definition]):
-        print(fmt_str.format(entity.text, 'xxxxxxxx', 'NO ENTRY FOUND', 'NO DEF'))
 
-        # further resolves entities without a match, by analyzing dependencies, possibly redo CUI search on the HEAD
-        # if the HEAD is not the same as the entity (insinuating actual dependency)
-        subtext = entity.text
-        sub_doc = nlp(subtext)
-        sub_fmt_str = "\t{:<15} ~ {:<15} ~ {:<35}"
-        for token in sub_doc:
-            print(sub_fmt_str.format(
-                token.text, token.head.text, '{}'.format(list(token.children))))
-    else:
-        print(fmt_str.format(entity.text, first_cuid,
-                             kb_entry.canonical_name, kb_entry.definition[0:40] + "..."))
+    temp = 'segmental glomerulosclerosis'
+    # tempfmt = "{:<20}| {:<11}| {:<6}"
+    if(entity.text == temp.lower()):
+        CUIsearch(entity, nlp, fmt_str)
+    #     for kb_entry in entity._.kb_ents:
+    #         cui = kb_entry[0]
+    #         match_score = kb_entry[1]
+    #         print(tempfmt.format(entity.text, cui, match_score))
+    # try:
+    #     fmt_str = "{:<20}| {:<5}| {:<20}"
+    # # print(type(entity.text), type(str(len(entity._.kb_ents))), type(entity._.kb_ents[0]))
+    #     print(fmt_str.format(entity.text, str(len(entity._.kb_ents)),
+    #                          '{}'.format(entity._.kb_ents[0])))
+    # except IndexError:
+    #     fmt_str = "{:<20}| {:<5}"
+    #     print(fmt_str.format(entity.text, str(len(entity._.kb_ents))), end=" | ")
+    #     print(entity._.kb_ents)
+
+    # for kb_entry in entity._.kb_ents:
+    #     cui = kb_entry[0]
+    #     match_score = kb_entry[1]
+    #     print(fmt_str.format(entity.text, cui, match_score))
+
+    # try:  # WEIRD error where ATI is repeated, but a CUI is only generated for the repeat instance
+    #     first_cuid = entity._.kb_ents[0][0]
+    #     kb_entry = linker.kb.cui_to_entity[first_cuid]
+    # except IndexError:
+    #     print(fmt_str.format(entity.text, 'CUI INDERROR', 'NO ENTRY FOUND', 'NO DEF'))
+    # # CUI generated but not found in db, examine word parts inside?
+    # if(None in [kb_entry.canonical_name, kb_entry.definition]):
+    #     print(fmt_str.format(entity.text, 'xxxxxxxx', 'NO ENTRY FOUND', 'NO DEF'))
+    #
+    #     # further resolves entities without a match, by analyzing dependencies, possibly redo CUI search on the HEAD
+    #     # if the HEAD is not the same as the entity (insinuating actual dependency)
+    #     subtext = entity.text
+    #     sub_doc = nlp(subtext)
+    #     sub_fmt_str = "\t{:<15} ~ {:<15} ~ {:<35}"
+    #     for token in sub_doc:
+    #         print(sub_fmt_str.format(
+    #             token.text, token.head.text, '{}'.format(list(token.children))))
+    # else:
+    #     print(fmt_str.format(entity.text, first_cuid,
+    #                          kb_entry.canonical_name, kb_entry.definition[0:40] + "..."))
 
 # entity = doc.ents[1]
 # for umls_ent in entity._.kb_ents:
