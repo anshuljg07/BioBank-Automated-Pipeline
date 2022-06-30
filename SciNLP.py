@@ -5,7 +5,58 @@ import pandas as pd
 from spacy import displacy
 from scispacy.abbreviation import AbbreviationDetector
 from scispacy.linking import EntityLinker
+from negspacy.negation import Negex
 from openpyxl import load_workbook
+
+
+'''
+Object to represent the kb matches in a document. Attributes include the unique CUI, entity.text, Canonical name, USML definition,
+and the dependency information, which includes the head and children of the given tokens
+'''
+
+
+class CUIgroup:
+    def __init__(self, cui, canon, definition, head, children, negation):
+        self.cui = cui
+        self.entity = entity
+        self.canon = canon
+        self.definition = definition
+        self.head = head
+        self.children = children
+        self.negation = negation
+
+    def find_negation(self):
+        pass
+
+
+'''
+Object meant to hold the CUIgroup and organize them based on the sections from which they were derived.
+'''
+
+
+class Section:
+    def __init__(self, text):
+        self.text = text
+        self.cuis = []
+        self.cuigroups = []
+
+    def __repr__(self):
+        fmt_str = "{:<20} | {:<10} | {:<20} | {:<40}"
+        print(fmt_str.format("Entity", "1st CUI", "Canonical Name", "Definition"))
+        for group in cuigroups:
+            print(fmt_str.format(group.entity.text, group.cui, group.canon, group.definition))
+
+    def Analyze(self, nlp):
+        doc = nlp(self.text)
+
+
+class NLPDriver():
+    def __init__(self):
+        # try and get the pip installation for the lg file (TIMES OUT, BAD WIFI?)
+        self.nlp = spacy.load("en_core_sci_md")
+        self.nlp.add_pipe("scispacy_linker", config={
+            "resolve_abbreviations": True, "linker_name": "umls"})
+        self.linker = nlp.get_pipe("scispacy_linker")
 
 
 # iteration 1, before I understood how what kb_ents was
@@ -56,10 +107,17 @@ def CUIsearch(entity, nlp, fmt_str):
                     print(fmt_str.format(entity.text, first_cuid,
                                          query.canonical_name, query.definition[0:40] + "..."))
                     return
-            print(fmt_str.format(entity.text, 'SEARCHED', 'NO ENTRY FOUND', 'NO DEF'))
+            print(fmt_str.format(entity.text, cui, 'ENTRIES FOUND', 'NO DEF'))
         else:
             print(fmt_str.format(entity.text, first_cuid,
                                  query.canonical_name, query.definition[0:40] + "..."))
+            if(len(entity.text.split()) > 1):
+                subtext = entity.text
+                sub_doc = nlp(subtext)
+                sub_fmt_str = "\t{:<15} ~ {:<5} ~ {:<15} ~ {:<35}"
+                for token in sub_doc:
+                    print(sub_fmt_str.format(token.text, str(len(entity.text.split())), token.head.text,
+                                             '{}'.format(list(token.children))))
 
     else:  # no match found in kb, so no CUI/match confidence tuples in kb_ents
         print(fmt_str.format(entity.text, 'xxxxxxxx', 'NO ENTRY FOUND', 'NO DEF'))
@@ -155,20 +213,23 @@ text = 'aki with possible vanco toxicity -atn versus ain '
 #     print(fmt_str.format(entity.text, first_cuid,
 #                          kb_entry.canonical_name, kb_entry.definition[0:15] + "..."))
 
-nlp = spacy.load("en_core_sci_sm")
+# nlp = spacy.load("en_core_sci_sm")
+nlp = spacy.load("en_core_sci_md")
 nlp.add_pipe("scispacy_linker", config={"resolve_abbreviations": True, "linker_name": "umls"})
-doc = nlp(" worsening renal insufficiency since 1 /2021, history of systemic therapy for metastatic pancreatic cancer. kidney , biopsy : - focal and segmental glomerulosclerosis , favor primary - diffuse acute tubular injury. - severe arterionephrosclerosis - acute tubular injury")
 linker = nlp.get_pipe("scispacy_linker")
+# doc = nlp(" worsening renal insufficiency since 1 /2021, history of systemic therapy for metastatic pancreatic cancer. kidney , biopsy : - focal and segmental glomerulosclerosis , favor primary - diffuse acute tubular injury. - severe arterionephrosclerosis - acute tubular injury")
+doc = nlp(" 30 -year-old woman with persistent hematuria and preserved gfr . evaluate for tbm versus other occult cause for hematuria . also interested to see if any areas of focal ischemic damage consistent with vasospasm as she has been diagnosed with loin pain hematuria")
+# linker = nlp.get_pipe("scispacy_linker")
 
-fmt_str = "{:<25} | {:<15} | {:<20} | {:<40}"
+fmt_str = "{:<20} | {:<10} | {:<20} | {:<40}"
 print(fmt_str.format("Entity", "1st CUI", "Canonical Name", "Definition"))
 
 for entity in doc.ents:
-
-    temp = 'segmental glomerulosclerosis'
+    CUIsearch(entity, nlp, fmt_str)
+    # temp = 'segmental glomerulosclerosis'
     # tempfmt = "{:<20}| {:<11}| {:<6}"
-    if(entity.text == temp.lower()):
-        CUIsearch(entity, nlp, fmt_str)
+    # if(entity.text == temp.lower()):
+    # CUIsearch(entity, nlp, fmt_str)
     #     for kb_entry in entity._.kb_ents:
     #         cui = kb_entry[0]
     #         match_score = kb_entry[1]
