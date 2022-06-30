@@ -70,7 +70,26 @@ conda install -c anaconda git
 #### 5.5) GitHub
 `GitHub` is an industry standard remote repository where developers save their code and facilitate collaboration on Open Source projects. Storing your code in GitHub is optional but it is highly reccomended. To make a GitHub account [CLICK HERE](https://github.com/join)
 
-#### 6) pdf2image (specifically the "convert_from_path" function)
+#### 6) scispacy
+`scispacy` is a python package that contains spacy models that are aimed to provide deep-learning for clinical, biomedical, and biological text. One of the most important features of `scispacy` is its `Named Entity Recognition (NER)` feature, which is able to identify medicaly relevant "entities" within the text. To install scispacy:
+```
+pip install scispacy
+```
+#### 6.5) scispacy trained model
+`scispacy` comes with many pre-trained modesl that are trained on different collections of medical text that are geared towards different specialities of the medical field. These models are listed [HERE](https://allenai.github.io/scispacy/).
+We will be using the (middle or larger) sized model. To instal this model in your environment, type:
+```
+pip install {link to the model}
+```
+for example if downloading the middle sized model, the command would be:
+```
+pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.0/en_core_sci_md-0.5.0.tar.gz
+```
+
+#### 7) negspacy
+'
+
+#### 8) pdf2image (specifically the "convert_from_path" function)
 The `pdf2image` package is a efficient pdf to image converter that allows for conversion to most popular image extensions. .tiff format works best for `pytesseract` and .tiff conversions is a strength of `pdf2image`. 
 
 ```
@@ -82,7 +101,7 @@ pip install pdf2image
 ```
 When installing the `pdf2image` package the conda installation is always preferred, but the secondary pip installtion is provided if an `ImportError` arises. This error and solving it will be discussed later.
 
-#### 6.5) poppler
+#### 8.5) poppler
 The `poppler` package is an necessary python binding to the `poppler-cpp` (poppler C++) library. This library grants the ability to read, render, and modify pdf documents. While this project does make use of these features, the `pdf2image` package requires a linking between the 2 to function properly. This linking will be discussed later.
 ```
 brew install poppler
@@ -92,7 +111,7 @@ OR
 conda install -c conda-forge poppler
 ```
 While it is reccomended to use the conda installation when using conda environments, I have had `ImportErrors` when installing the poppler package through conda due to unsucessful linking mentioned earlier. 
-#### 6.55) Errors with pdf2image and poppler
+#### 8.55) Errors with pdf2image and poppler
 When setting up both the `pdf2image` and `poppler` binding I have had multiple set up issues. Specifically there is a very common `ImportError` that arises:
 ```
 Traceback (most recent call last):
