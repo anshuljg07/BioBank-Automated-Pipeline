@@ -16,14 +16,16 @@ and the dependency information, which includes the head and children of the give
 
 
 class CUIgroup:
-    def __init__(self, cui, canon, definition, head, children, negation):
+    # def __init__(self, cui, canon, definition, family, negation):
+    def __init__(self, cui, canon, definition, family):
         self.cui = cui
         self.entity = entity
         self.canon = canon
         self.definition = definition
-        self.head = head
-        self.children = children
-        self.negation = negation
+        self.family = family  # contains a list of the head/children for each token in the entity
+        # self.head = head
+        # self.children = children
+        # self.negation = negation #to be added soon once how to do negation is figured out
 
     def find_negation(self):
         pass
@@ -46,8 +48,63 @@ class Section:
         for group in cuigroups:
             print(fmt_str.format(group.entity.text, group.cui, group.canon, group.definition))
 
-    def Analyze(self, nlp):
+    def Analyze(self, nlp, linker):
         doc = nlp(self.text)
+        for entity in doc.ents:
+            CUIsearch_helper(entity, nlp, linker)
+
+    def CUIsearch_helper(self, entity, nlp, linker):
+        if(len(entity._.kb_ents) != 0):  # match exists in kb
+            first_cuid = entity._.kb_ents[0][0]  # CAN I REPLACE "CUID" with "CUI"
+            query = linker.kb.cui_to_entity[first_cuid]  # CAN I REPLACE "CUID" with "CUI"
+
+            # if first match's CUID doesn't return a definition, keep looking for a match that has a def.
+            # do i need to try and find a match that has a definition or is a CUI enough
+            if(None == query.definition):
+                for i, kb_entry in enumerate(entity._.kb_ents):
+                    if i == 0:
+                        continue
+                    cuid = kb_entry[0]  # can "cuid" be replaced with "cui"?
+                    query = linker.kb.cui_to_entity[first_cuid]
+
+                    if(None == query.definition):
+                        cui = kb_entry[0]
+                        match_score = kb_entry[1]
+                        continue
+                    else:  # found a match with a Definition
+                        if(entity.text.split() > 1):
+                            family = find_HeadandChildren(entity.text, nlp)
+                        else:
+                            family = []
+                        tempCUI = CUIgroup(cui, query.canonical_name, query.definition, family)
+                        self.cuigroups.append(tempCUI)  # add cui grouping to the list of groups
+                        self.cuis.append(cui)  # add unique cui to the list of cuis
+                        return
+
+            # if for loop completes then no match with a definition was found, so use the first match (best match)
+            else:
+                if(entity.text.split() > 1):
+                    family = find_HeadandChildren(entity.text, nlp)
+                else:
+                    family = []
+
+                # since no def exists, pass empty string
+                # possible that .canonical_name could return NoneType as well
+                tempCUI = CUIgroup(first_cuid, query.canonical_name, '', family)
+                self.cuigroups.append(tempCUI)
+                self.cuis.append(first_cuid)
+
+        else:  # match doesn't exist in kb
+            pass
+            # takes the subtext and finds the head/children of them and returns them to be loaded into the CUIgroup's head and
+            # children attributes
+
+    def find_HeadandChildren(self, subtext, nlp):
+        familycollection = []
+        sub_doc = nlp(subtext)
+        for token in sub_doc:
+            familycollection.append([token.text, token.head.text, list(token.children)])
+        return familycollection
 
 
 class NLPDriver():
@@ -57,29 +114,6 @@ class NLPDriver():
         self.nlp.add_pipe("scispacy_linker", config={
             "resolve_abbreviations": True, "linker_name": "umls"})
         self.linker = nlp.get_pipe("scispacy_linker")
-
-
-# iteration 1, before I understood how what kb_ents was
-def CUIsearch_temp(entity, nlp):
-    try:
-        first_cuid = entity._.kb_ents[0][0]
-        kb_entry = linker.kb.cui_to_entity[first_cuid]
-        if(None in [kb_entry.canonical_name, kb_entry.definition]):
-            print(fmt_str.format(entity.text, 'xxxxxxxx', 'NO ENTRY FOUND', 'NO DEF'))
-            subtext = entity.text
-            sub_doc = nlp(subtext)
-            sub_fmt_str = "\t{:<15} ~ {:<15} ~ {:<35}"
-            for token in sub_doc:
-                print(sub_fmt_str.format(
-                    token.text, token.head.text, '{}'.format(list(token.children))))
-        else:
-
-            print(fmt_str.format(entity.text, first_cuid,
-                                 kb_entry.canonical_name, kb_entry.definition[0:40] + "..."))
-
-    except IndexError:
-        kb_entry = None
-        print(fmt_str.format(entity.text, 'CUI INDERROR', 'NO ENTRY FOUND', 'NO DEF'))
 
 
 def CUIsearch(entity, nlp, fmt_str):
@@ -127,6 +161,30 @@ def CUIsearch(entity, nlp, fmt_str):
         for token in sub_doc:
             print(sub_fmt_str.format(
                 token.text, token.head.text, '{}'.format(list(token.children))))
+
+# iteration 1, before I understood how what kb_ents was
+
+
+def CUIsearch_temp(entity, nlp):
+    try:
+        first_cuid = entity._.kb_ents[0][0]
+        kb_entry = linker.kb.cui_to_entity[first_cuid]
+        if(None in [kb_entry.canonical_name, kb_entry.definition]):
+            print(fmt_str.format(entity.text, 'xxxxxxxx', 'NO ENTRY FOUND', 'NO DEF'))
+            subtext = entity.text
+            sub_doc = nlp(subtext)
+            sub_fmt_str = "\t{:<15} ~ {:<15} ~ {:<35}"
+            for token in sub_doc:
+                print(sub_fmt_str.format(
+                    token.text, token.head.text, '{}'.format(list(token.children))))
+        else:
+
+            print(fmt_str.format(entity.text, first_cuid,
+                                 kb_entry.canonical_name, kb_entry.definition[0:40] + "..."))
+
+    except IndexError:
+        kb_entry = None
+        print(fmt_str.format(entity.text, 'CUI INDERROR', 'NO ENTRY FOUND', 'NO DEF'))
 
 
 dfs = pd.read_excel('xlsxfiles/biobankrepo.xlsx', sheet_name='biobank scraped pdfs')
@@ -218,7 +276,8 @@ nlp = spacy.load("en_core_sci_md")
 nlp.add_pipe("scispacy_linker", config={"resolve_abbreviations": True, "linker_name": "umls"})
 linker = nlp.get_pipe("scispacy_linker")
 # doc = nlp(" worsening renal insufficiency since 1 /2021, history of systemic therapy for metastatic pancreatic cancer. kidney , biopsy : - focal and segmental glomerulosclerosis , favor primary - diffuse acute tubular injury. - severe arterionephrosclerosis - acute tubular injury")
-doc = nlp(" 30 -year-old woman with persistent hematuria and preserved gfr . evaluate for tbm versus other occult cause for hematuria . also interested to see if any areas of focal ischemic damage consistent with vasospasm as she has been diagnosed with loin pain hematuria")
+# doc = nlp(" 30 -year-old woman with persistent hematuria and preserved gfr . evaluate for tbm versus other occult cause for hematuria . also interested to see if any areas of focal ischemic damage consistent with vasospasm as she has been diagnosed with loin pain hematuria")
+doc = nlp(" the biopsy consists of one fragment which is stained with h &e, pas , trichrome , jones silver and hps stains . review of all stains reveals at least 10 glomeruli of which three are globally sclerosed . the architecture of the kidney is relatively well -preserved. there is mild interstitial fibrosis and tubular atrophy (~5%). there is a patchy interstitial monomorphic small lymphocytic infiltrate involving ~5-10% of the biopsy tissue . the tubules show acute tubular injury . immunohistochemistry shows that the infiltrating lymphocytes are cd20 variably positive b -cells, which co -express cd5 . cd3 highlights admixed t cells . congo red stain is positive for focal congophilic deposits in arterioles and the glomerular mesangium . intimal sclerosis is present . ")
 # linker = nlp.get_pipe("scispacy_linker")
 
 fmt_str = "{:<20} | {:<10} | {:<20} | {:<40}"
