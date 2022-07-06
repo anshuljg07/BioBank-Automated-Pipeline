@@ -7,6 +7,7 @@ from scispacy.abbreviation import AbbreviationDetector
 from scispacy.linking import EntityLinker
 from negspacy.negation import Negex
 from openpyxl import load_workbook
+from itertools import chain, combinations, permutations
 
 
 '''
@@ -26,6 +27,10 @@ class CUIgroup:
         # self.head = head
         # self.children = children
         # self.negation = negation #to be added soon once how to do negation is figured out
+
+    '''
+    Use Negspacy to see if the individual tokens are negated or carry a negation token.
+    '''
 
     def find_negation(self):
         pass
@@ -80,8 +85,16 @@ class Section:
                         self.cuigroups.append(tempCUI)  # add cui grouping to the list of groups
                         self.cuis.append(cui)  # add unique cui to the list of cuis
                         return
+                # if for loop completes then no match with a definition was found, so use the first match (best match)
+                if(entity.text.split() > 1):
+                    family = find_HeadandChildren(entity.text, nlp)
+                else:
+                    family = []
+                tempCUI = CUIgroup(first_cuid, query.canonical_name, '', family)
+                self.cuigroups.append(tempCUI)
+                self.cuis.append(first_cuid)
 
-            # if for loop completes then no match with a definition was found, so use the first match (best match)
+            # if the first match contains a definition use the first match
             else:
                 if(entity.text.split() > 1):
                     family = find_HeadandChildren(entity.text, nlp)
@@ -90,14 +103,20 @@ class Section:
 
                 # since no def exists, pass empty string
                 # possible that .canonical_name could return NoneType as well
-                tempCUI = CUIgroup(first_cuid, query.canonical_name, '', family)
+                tempCUI = CUIgroup(first_cuid, query.canonical_name, query.definition, family)
                 self.cuigroups.append(tempCUI)
                 self.cuis.append(first_cuid)
 
         else:  # match doesn't exist in kb
+            # find combinations of the head + children and search for them in the KB.
+
             pass
             # takes the subtext and finds the head/children of them and returns them to be loaded into the CUIgroup's head and
             # children attributes
+
+    '''
+    given a subtext, and the nlp algo to interpret it. The
+    '''
 
     def find_HeadandChildren(self, subtext, nlp):
         familycollection = []
@@ -158,6 +177,47 @@ def CUIsearch(entity, nlp, fmt_str):
         subtext = entity.text
         sub_doc = nlp(subtext)
         sub_fmt_str = "\t{:<15} ~ {:<15} ~ {:<35}"
+        heads = []
+        children = []
+        head_combos = []
+        child_combos = []
+
+        # for token in sub_doc:
+        #     if(len(list(token.children)) != 0):  # if the token contains children, then the token is a head
+        #         heads.append(token.head)  # add the .head object (to get the text, use .head.text)
+        #         children.extend(list(token.children))
+        # # once all the heads and tokens are found, use the algo
+        # for r in range(len(heads)+1)):
+        #     if(len(chain.from_iterable(combinations(heads, r))) == len(heads)):
+        #         head_combos.append(chain.from_iterable(combinations(heads, r)))
+        # for r in range(len(s)+1):
+        #     if(len(chain.from_iterable(combinations(s, r))) == len(s)):
+        #         output.append(chain.from_iterable(combinations(s, r)))
+        #
+        #
+        # # generates all possible combinations of heads from size (0 -> n)
+        # head_combos=list(chain.from_iterable(permutations(heads, r) for r in range(len(heads)+1)))
+        #
+        # # generates a powerset of all possible combinations of heads for those of size (1 -> n-1)
+        # head_combos=list(chain.from_iterable(combinations(heads, r) for r in range(len(heads)+1)))
+        #
+        # # generates all possible combinations of children from size (0 -> n)
+        # child_combos=list(chain.from_iterable(permutations(children, r)
+        #                   for r in range(len(children)+1)))
+        #
+        # # generates a powerset of all possible combinations of heads for those of size (1 -> n-1)
+        # child_combos=list(chain.from_iterable(combinations(children, r)
+        #                   for r in range(len(children)+1)))
+        #
+        # output=list(chain.from_iterable(permutations(s, r) for r in range(len(s)+1)))
+        # output2=list(chain.from_iterable(combinations(s, r) for r in range(len(s)+1)))
+
+        # algorithim for searching all of the head combos + children combos
+        # for i, headcombo in enumerate(head_combos):
+        #     if(len(headcombo) == 0):
+        #         continue
+
+    # prints all of the tokens and their dependenices for entities with no match in the KB
         for token in sub_doc:
             print(sub_fmt_str.format(
                 token.text, token.head.text, '{}'.format(list(token.children))))
