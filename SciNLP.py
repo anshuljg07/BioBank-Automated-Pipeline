@@ -26,7 +26,7 @@ class CUIgroup:
         self.family = family  # contains a list of the head/children for each token in the entity
         # contain a dictionary of inner CUIs and their matching text query
         self.innercuis = {}  # ex: {}
-
+        # hello
         # self.head = head
         # self.children = children
         # self.negation = negation #to be added soon once how to do negation is figured out
