@@ -24,6 +24,9 @@ class CUIgroup:
         self.canon = canon
         self.definition = definition
         self.family = family  # contains a list of the head/children for each token in the entity
+        # contain a dictionary of inner CUIs and their matching text query
+        self.innercuis = {}  # ex: {}
+
         # self.head = head
         # self.children = children
         # self.negation = negation #to be added soon once how to do negation is figured out
@@ -135,7 +138,7 @@ class NLPDriver():
         self.linker = nlp.get_pipe("scispacy_linker")
 
 
-def CUIsearch(entity, nlp, fmt_str):
+def CUIsearch(entity, nlp, fmt_str, recurs):
     # check if matches exist in the knowledge base
     if(len(entity._.kb_ents) != 0):
         # take the first match (coincidentally the highest match score)
@@ -173,6 +176,8 @@ def CUIsearch(entity, nlp, fmt_str):
                                              '{}'.format(list(token.children))))
 
     else:  # no match found in kb, so no CUI/match confidence tuples in kb_ents
+        if(recurs == True):
+            return
         print(fmt_str.format(entity.text, 'xxxxxxxx', 'NO ENTRY FOUND', 'NO DEF'))
         subtext = entity.text
         sub_doc = nlp(subtext)
@@ -182,40 +187,72 @@ def CUIsearch(entity, nlp, fmt_str):
         head_combos = []
         child_combos = []
 
-        # for token in sub_doc:
-        #     if(len(list(token.children)) != 0):  # if the token contains children, then the token is a head
-        #         heads.append(token.head)  # add the .head object (to get the text, use .head.text)
-        #         children.extend(list(token.children))
-        # # once all the heads and tokens are found, use the algo
-        # for r in range(len(heads)+1)):
+        for token in sub_doc:
+            if(len(list(token.children)) != 0):  # if the token contains children, then the token is a head
+                # add the .head object (to get the text, use .head.text)
+                heads.append(token.head.text)
+                for i in list(token.children):
+                    children.append(i.text)
+                # print(type(list(token.children)[0].text))
+                # children.extend(list(token.children))
+                # print(children)
+
+        # once all the heads and tokens are fxound, use the algo
+        # for r in range(len(heads)+1):
         #     if(len(chain.from_iterable(combinations(heads, r))) == len(heads)):
         #         head_combos.append(chain.from_iterable(combinations(heads, r)))
         # for r in range(len(s)+1):
         #     if(len(chain.from_iterable(combinations(s, r))) == len(s)):
         #         output.append(chain.from_iterable(combinations(s, r)))
-        #
-        #
-        # # generates all possible combinations of heads from size (0 -> n)
-        # head_combos=list(chain.from_iterable(permutations(heads, r) for r in range(len(heads)+1)))
-        #
-        # # generates a powerset of all possible combinations of heads for those of size (1 -> n-1)
-        # head_combos=list(chain.from_iterable(combinations(heads, r) for r in range(len(heads)+1)))
-        #
-        # # generates all possible combinations of children from size (0 -> n)
-        # child_combos=list(chain.from_iterable(permutations(children, r)
-        #                   for r in range(len(children)+1)))
-        #
-        # # generates a powerset of all possible combinations of heads for those of size (1 -> n-1)
-        # child_combos=list(chain.from_iterable(combinations(children, r)
-        #                   for r in range(len(children)+1)))
-        #
+
+        # generates all possible combinations of heads from size (0 -> n)
+        head_combos = list(chain.from_iterable(permutations(heads, r) for r in range(len(heads)+1)))
+
+        # generates a powerset of all possible combinations of heads for those of size (1 -> n-1)
+        # head_combos = list(chain.from_iterable(combinations(heads, r) for r in range(len(heads)+1)))
+
+        # generates all possible combinations of children from size (0 -> n)
+        child_combos = list(chain.from_iterable(permutations(children, r)
+                                                for r in range(len(children)+1)))
+        # generates a powerset of all possible combinations of heads for those of size (1 -> n-1)
+        # child_combos = list(chain.from_iterable(combinations(children, r) for r in range(len(children)+1)))
+        head_combos = list(head_combos)
+        child_combos = list(child_combos)
+
+        print(head_combos)
+        print(child_combos)
+
+        # messing with the terminal, commands
         # output=list(chain.from_iterable(permutations(s, r) for r in range(len(s)+1)))
         # output2=list(chain.from_iterable(combinations(s, r) for r in range(len(s)+1)))
 
         # algorithim for searching all of the head combos + children combos
-        # for i, headcombo in enumerate(head_combos):
-        #     if(len(headcombo) == 0):
-        #         continue
+        query_fmt = "{:<20} $ {:<20} $ {:<20}"
+        for i, headcombo in enumerate(head_combos):
+            if(len(headcombo) == 0):
+                continue
+            for j, childrencombo in enumerate(child_combos):
+                if(len(childrencombo) == 0):
+                    continue
+                # combine the children and head combo into a queriable string
+                # headquery = ' '.join(headcombo)
+                # print('childrencombo: ')
+                # print(childrencombo)
+                # childrenquery = ' '.join(childrencombo)
+                # subqeury = childrenquery + ' ' + headquery
+                subquery = (' '.join(childrencombo)) + ' ' + (' '.join(headcombo))
+                print(query_fmt.format(' '.join(childrencombo), ' '.join(headcombo), subquery))
+
+                # if you're simply searching for the original entity, skip it
+                if subquery == entity.text:
+                    continue
+
+                # run entity recognizer
+                innerdoc = nlp(subquery)
+                for innerentity in innerdoc.ents:
+                    recurs = True
+                    CUIsearch(innerentity, nlp, fmt_str, recurs)
+                # do I create a new subCUI function, or use the old CUIsearch function
 
     # prints all of the tokens and their dependenices for entities with no match in the KB
         for token in sub_doc:
@@ -342,9 +379,10 @@ doc = nlp(" the biopsy consists of one fragment which is stained with h &e, pas 
 
 fmt_str = "{:<20} | {:<10} | {:<20} | {:<40}"
 print(fmt_str.format("Entity", "1st CUI", "Canonical Name", "Definition"))
+donerecursion = False
 
 for entity in doc.ents:
-    CUIsearch(entity, nlp, fmt_str)
+    CUIsearch(entity, nlp, fmt_str, donerecursion)
     # temp = 'segmental glomerulosclerosis'
     # tempfmt = "{:<20}| {:<11}| {:<6}"
     # if(entity.text == temp.lower()):
