@@ -31,6 +31,8 @@ class Group:
     def find_negation(self):
         pass
 
+    # define repr that other objects can inherit
+
 
 '''
 Object that corresponds to a Named Entity using the Spacy Named Entity Recognizer (NER). The named entity is generated
@@ -44,7 +46,8 @@ negation is noted with relation to the named entity.
 
 class CUIgroup(Group):
     # def __init__(self, cui, canon, definition, family, negation):
-    def __init__(self, cui, entity, canon, definition, family, negation):
+    # add negation as an attribute later
+    def __init__(self, cui, entity, canon, definition, family):
         super().__init__(cui, entity, canon, definition, family)
         self.subCUIgroups = []  # store the subCUIgroup objects
         self.subCUIs = []  # store the CUIs (vals)
@@ -81,6 +84,7 @@ in no matches in the KB. Therefore a NULL valued CUIgroup may have multiple non-
 class subCUIgroup(Group):
     # should I store the text, the entity, or the token?
     def __init__(self, cui, entity, canon, definition, family):
+
         super().__init__(cui, entity, canon, definition, family)
 
 
@@ -92,12 +96,14 @@ common clinical entities. These are then cross referenced with the USML {word fo
 
 
 class Section:
-    def __init__(self, text):
+    def __init__(self, text, nlp, linker):
         self.fmt_str = "{:<20} | {:<10} | {:<20} | {:<40}"
         self.sub_fmt_str = "\t{:<15} ~ {:<15} ~ {:<35}"
         self.query_fmt = "{:<20} $ {:<20} $ {:<20}"
         self.donerecursion = False
         self.text = text
+        self.nlp = nlp
+        self.linker = linker
         self.cuis = []
         self.cuigroups = []
 
@@ -106,26 +112,34 @@ class Section:
 
     def __repr__(self):
         print(self.fmt_str.format("Entity", "1st CUI", "Canonical Name", "Definition"))
-        for group in cuigroups:
-            if(not group.subcuiexists):  # if no subcuis exists
-                print(fmt_str.format(group.entity.text, group.cui, group.canon, group.definition))
+        for cuigroup in self.cuigroups:
+            if(cuigroup is None):
+                continue
+            if(not cuigroup.containSubs):  # if no subcuis exists
+                print(self.fmt_str.format(cuigroup.entity.text, cuigroup.cui,
+                                          cuigroup.canon, cuigroup.definition))
             else:
-                # print out the subcui entities
+                print(self.fmt_str.format(cuigroup.entity.text, 'NONE', 'NONE', 'NONE'))
+                for subcui in cuigroup.subCUIgroups:
+                    print(self.sub_fmt_str.format(subcui.entity.text, subcui.cui, subcui.canon))
 
-    def Analyze(self, nlp, linker):
-        doc = nlp(self.text)
+    # def Analyze(self, nlp, linker):
+    def Analyze(self):
+        doc = self.nlp(self.text)
         for entity in doc.ents:
             self.donerecursion = False
             self.tempNullValCUI = None
-            CUIsearch_helper(entity, nlp, linker)
+            self.CUIsearch_helper(entity)
+            # CUIsearch_helper(entity, nlp, linker)
             self.cuigroups.append(self.tempNullValCUI)
 
     # add variable for recursion ('recurs')
     # make linker a class attribute??
-    def CUIsearch_helper(self, entity, nlp, linker):
+    # def CUIsearch_helper(self, entity, nlp, linker):
+    def CUIsearch_helper(self, entity):
         if(len(entity._.kb_ents) != 0):  # match exists in kb
             first_cuid = entity._.kb_ents[0][0]  # CAN I REPLACE "CUID" with "CUI"
-            query = linker.kb.cui_to_entity[first_cuid]  # CAN I REPLACE "CUID" with "CUI"
+            query = self.linker.kb.cui_to_entity[first_cuid]  # CAN I REPLACE "CUID" with "CUI"
 
             # if first match's CUID doesn't return a definition, keep looking for a match that has a def.
             # do i need to try and find a match that has a definition or is a CUI enough
@@ -134,7 +148,7 @@ class Section:
                     if i == 0:
                         continue
                     cuid = kb_entry[0]  # can "cuid" be replaced with "cui"?
-                    query = linker.kb.cui_to_entity[first_cuid]
+                    query = self.linker.kb.cui_to_entity[first_cuid]
 
                     if(None == query.definition):
                         cui = kb_entry[0]
@@ -148,12 +162,15 @@ class Section:
                                 cui, entity, query.canonical_name, query.definition, None)
 
                             # link to the null valued CUI group
-                            self.tempNullValCUI.subCUIgroups.append(subgroup)
-                            self.tempNullValCUI.subCUIs.append(cui)
+                            self.tempNullValCUI.addsubCUI(cui, subgroup)
+                            self.tempNullValCUI.containSubs = True
+                            # self.tempNullValCUI.subCUIgroups.append(subgroup)
+                            # self.tempNullValCUI.subCUIs.append(cui)
                             self.cuis.append(cui)
                             return
                         else:
-                            family = find_HeadandChildren(entity.text, nlp)
+                            # family = find_HeadandChildren(entity.text, nlp)
+                            family = self.find_HeadandChildren(entity.text)
                             tempCUI = CUIgroup(cui, entity, query.canonical_name,
                                                query.definition, family)
                             self.cuigroups.append(tempCUI)  # add cui grouping to the list of groups
@@ -167,12 +184,15 @@ class Section:
                     subgroup = subCUIgroup(first_cuid, entity, query.canonical_name, '', None)
 
                     # link to the null valued CUI group
-                    self.tempNullValCUI.subCUIgroups.append(subgroup)
-                    self.tempNullValCUI.subCUIs.append(first_cuid)
+                    self.tempNullValCUI.addsubCUI(first_cuid, subgroup)
+                    self.tempNullValCUI.containSubs = True
+                    # self.tempNullValCUI.subCUIgroups.append(subgroup)
+                    # self.tempNullValCUI.subCUIs.append(first_cuid)
                     self.cuis.append(first_cuid)
                     return
                 else:
-                    family = find_HeadandChildren(entity.text, nlp)
+                    # family = find_HeadandChildren(entity.text, nlp)
+                    family = self.find_HeadandChildren(entity.text)
                     tempCUI = CUIgroup(first_cuid, entity, query.canonical_name, '', family)
                     self.cuigroups.append(tempCUI)
                     self.cuis.append(first_cuid)
@@ -186,21 +206,24 @@ class Section:
                         first_cuid, entity, query.canonical_name, query.definition, None)
 
                     # link to the null valued CUI group
-                    self.tempNullValCUI.subCUIgroups.append(subgroup)
-                    self.tempNullValCUI.subCUIs.append(first_cuid)
+                    self.tempNullValCUI.addsubCUI(first_cuid, subgroup)
+                    self.tempNullValCUI.containSubs = True
+                    # self.tempNullValCUI.subCUIgroups.append(subgroup)
+                    # self.tempNullValCUI.subCUIs.append(first_cuid)
                     self.cuis.append(first_cuid)
                     return
 
                 else:
-                    family = find_HeadandChildren(entity.text, nlp)
+                    # family = find_HeadandChildren(entity.text, nlp)
+                    family = self.find_HeadandChildren(entity.text)
                     # since no def exists, pass empty string
                     # possible that .canonical_name could return NoneType as well
                     tempCUI = CUIgroup(first_cuid, entity, query.canonical_name,
                                        query.definition, family)
                     self.cuigroups.append(tempCUI)
                     self.cuis.append(first_cuid)
-
-        else:  # match doesn't exist in kb
+        # match doesn't exist in kb
+        else:
             if(self.donerecursion == True):
                 return
             # family = find_HeadandChildren(entity.text, nlp)
@@ -208,17 +231,21 @@ class Section:
             # self.cuigroups.append(noCUI)
 
             # CHECKING VIABILITY
-            family = find_HeadandChildren(entity.text, nlp)
+            # family = find_HeadandChildren(entity.text, nlp)
+            family = self.find_HeadandChildren(entity.text)
             self.tempNullValCUI = CUIgroup(None, entity, None, None, family)
-            self.tempNullValCUI.subcuiexists = True
+
+            # this should be done once the actual CUI of the subgroup is found, becasue dependencies could exist
+            # but there could still be no match
+            # self.tempNullValCUI.subcuiexists = True
 
             # add NullValCUI at the end or at the beginning? BEGNINNING OPTION
             # self.cuigroups.append(self.tempNullValCUI)
 
             # use the Spacy tokenizer to analyze dependencies
-            if(len(family > 0)):
+            if(len(family) > 0):
                 subtext = entity.text
-                sub_doc = nlp(subtext)
+                sub_doc = self.nlp(subtext)
                 heads = []            # contain the heads of the text
                 children = []         # contain the children of the text
                 head_combos = []      # contain all possible combinations/permutations of the heads
@@ -262,18 +289,19 @@ class Section:
                             continue
                     # generate subquery string, that will be fed to the KB
                     subquery = (' '.join(childrencombo)) + ' ' + (' '.join(headcombo))
-                    print(query_fmt.format(' '.join(childrencombo), ' '.join(headcombo), subquery))
+                    print(self.query_fmt.format(' '.join(childrencombo), ' '.join(headcombo), subquery))
 
                     # if you're simply searching for the original entity, skip it
                     if subquery == entity.text:
                         continue
 
                     # run entity recognizer on the subquery
-                    innerdoc = nlp(subquery)
+                    innerdoc = self.nlp(subquery)
                     for innerentity in innerdoc.ents:
                         # handle recursion
                         self.donerecursion = True
-                        CUIsearch_helper(self, innerentity, nlp, linker)
+                        # CUIsearch_helper(innerentity, nlp, linker)
+                        self.CUIsearch_helper(innerentity)
 
             # print(fmt_str.format(entity.text, 'xxxxxxxx', 'NO ENTRY FOUND', 'NO DEF'))
 
@@ -285,10 +313,11 @@ class Section:
     given a subtext, and the nlp algo to interpret it. The
     '''
 
-    def find_HeadandChildren(self, subtext, nlp):
-        if(subtext.split() > 1):
+    # def find_HeadandChildren(self, subtext, nlp):
+    def find_HeadandChildren(self, subtext):
+        if(len(subtext.split()) > 1):
             familycollection = []
-            sub_doc = nlp(subtext)
+            sub_doc = self.nlp(subtext)
             for token in sub_doc:
                 familycollection.append([token.text, token.head.text, list(token.children)])
             return familycollection
@@ -302,7 +331,12 @@ class NLPDriver():
         self.nlp = spacy.load("en_core_sci_md")
         self.nlp.add_pipe("scispacy_linker", config={
             "resolve_abbreviations": True, "linker_name": "umls"})
-        self.linker = nlp.get_pipe("scispacy_linker")
+        self.linker = self.nlp.get_pipe("scispacy_linker")
+
+    def CreateSection(self, text):
+        return Section(text, self.nlp, self.linker)
+
+# DEMO CODE, GOOD AS OF 07/12/2022
 
 
 def CUIsearch(entity, nlp, fmt_str, recurs):
@@ -426,33 +460,33 @@ def CUIsearch(entity, nlp, fmt_str, recurs):
 # iteration 1, before I understood how what kb_ents was
 
 
-def CUIsearch_temp(entity, nlp):
-    try:
-        first_cuid = entity._.kb_ents[0][0]
-        kb_entry = linker.kb.cui_to_entity[first_cuid]
-        if(None in [kb_entry.canonical_name, kb_entry.definition]):
-            print(fmt_str.format(entity.text, 'xxxxxxxx', 'NO ENTRY FOUND', 'NO DEF'))
-            subtext = entity.text
-            sub_doc = nlp(subtext)
-            sub_fmt_str = "\t{:<15} ~ {:<15} ~ {:<35}"
-            for token in sub_doc:
-                print(sub_fmt_str.format(
-                    token.text, token.head.text, '{}'.format(list(token.children))))
-        else:
-
-            print(fmt_str.format(entity.text, first_cuid,
-                                 kb_entry.canonical_name, kb_entry.definition[0:40] + "..."))
-
-    except IndexError:
-        kb_entry = None
-        print(fmt_str.format(entity.text, 'CUI INDERROR', 'NO ENTRY FOUND', 'NO DEF'))
-
-
-dfs = pd.read_excel('xlsxfiles/biobankrepo.xlsx', sheet_name='biobank scraped pdfs')
+# def CUIsearch_temp(entity, nlp):
+#     try:
+#         first_cuid = entity._.kb_ents[0][0]
+#         kb_entry = linker.kb.cui_to_entity[first_cuid]
+#         if(None in [kb_entry.canonical_name, kb_entry.definition]):
+#             print(fmt_str.format(entity.text, 'xxxxxxxx', 'NO ENTRY FOUND', 'NO DEF'))
+#             subtext = entity.text
+#             sub_doc = nlp(subtext)
+#             sub_fmt_str = "\t{:<15} ~ {:<15} ~ {:<35}"
+#             for token in sub_doc:
+#                 print(sub_fmt_str.format(
+#                     token.text, token.head.text, '{}'.format(list(token.children))))
+#         else:
+#
+#             print(fmt_str.format(entity.text, first_cuid,
+#                                  kb_entry.canonical_name, kb_entry.definition[0:40] + "..."))
+#
+#     except IndexError:
+#         kb_entry = None
+#         print(fmt_str.format(entity.text, 'CUI INDERROR', 'NO ENTRY FOUND', 'NO DEF'))
+#
+#
+# dfs = pd.read_excel('xlsxfiles/biobankrepo.xlsx', sheet_name='biobank scraped pdfs')
 
 # print('data = {}'.format(dfs))
 # print(type(dfs))
-tempdf = dfs.iloc[[2]]  # pulls out the 2nd index or 3rd row
+# tempdf = dfs.iloc[[2]]  # pulls out the 2nd index or 3rd row
 # print(tempdf.iloc[0, 3])  # pulls out the 3rd index or 4th column of the 3rd row
 # text = tempdf.iloc[0, 3]
 # text = "specimens are prepared for electron microscopy and semi -thin sections stained with toluidine blue are reviewed prior to thin sectioning for ultrastructural examination . electron microscopy demonstrates patent capillary loops . the glomerular architecture demonstrates corrugation and thickening of basement membranes with no subepithelial deposits and no intramembranous deposits . the tubules show dilated mitochondria and injury . there is global effacement of foot processes . there are no subendothelial deposits . the mesangium shows an increase in matrix . mesangial electron dense deposits are not identified . "
@@ -461,7 +495,7 @@ word_bank = [['ifta', 'interstitial fibrosis tubular atrophy'], ['if/ta', 'inter
              ['acute interstitial nephritis'], ['cin', 'contrast-induced nephropathy'], 'glomeruli', 'global glomerulosclerosis', 'segmental glomerulosclerosis', 'interstitial infiltrate', 'eosinophils', 'acute tubular injury', 'cores-michels', 'cores-zeus', 'arteriosclerosis', 'mesangial expansion', 'mesangial hypercellularity', 'cores-light']
 
 # text = 'SBMA Rick has fibrosis, IFTA, IF, TA. There is extrememe interstital fibrosis and tubular atrophy with little fibrosis. Sarah has tubular injury with moderate infiltrate and wide crescents.'
-text = 'aki with possible vanco toxicity -atn versus ain '
+# text = 'aki with possible vanco toxicity -atn versus ain '
 
 # nlp_sm = spacy.load('en_core_sci_sm')  # download/load scispacy medical verbage library
 # nlp_sm.add_pipe("scispacy_linker", config={"linker_name": "umls", "max_entities_per_mention": 3})
@@ -533,6 +567,10 @@ text = 'aki with possible vanco toxicity -atn versus ain '
 #                          kb_entry.canonical_name, kb_entry.definition[0:15] + "..."))
 
 # nlp = spacy.load("en_core_sci_sm")
+
+
+# DEMO CODE, GOOD AS OF 07/08/2022
+
 nlp = spacy.load("en_core_sci_md")
 nlp.add_pipe("scispacy_linker", config={"resolve_abbreviations": True, "linker_name": "umls"})
 linker = nlp.get_pipe("scispacy_linker")
@@ -547,6 +585,7 @@ donerecursion = False
 
 for entity in doc.ents:
     CUIsearch(entity, nlp, fmt_str, donerecursion)
+
     # temp = 'segmental glomerulosclerosis'
     # tempfmt = "{:<20}| {:<11}| {:<6}"
     # if(entity.text == temp.lower()):
@@ -594,3 +633,12 @@ for entity in doc.ents:
 # entity = doc.ents[1]
 # for umls_ent in entity._.kb_ents:
 #     print(linker.kb.cui_to_entity[umls_ent[0]])
+
+# def main():
+#     Driver = NLPDriver()
+#     Section = Driver.CreateSection(' the biopsy consists of one fragment which is stained with h &e, pas , trichrome , jones silver and hps stains . review of all stains reveals at least 10 glomeruli of which three are globally sclerosed . the architecture of the kidney is relatively well -preserved. there is mild interstitial fibrosis and tubular atrophy (~5%). there is a patchy interstitial monomorphic small lymphocytic infiltrate involving ~5-10% of the biopsy tissue . the tubules show acute tubular injury . immunohistochemistry shows that the infiltrating lymphocytes are cd20 variably positive b -cells, which co -express cd5 . cd3 highlights admixed t cells . congo red stain is positive for focal congophilic deposits in arterioles and the glomerular mesangium . intimal sclerosis is present . ')
+#     Section.Analyze()
+#     print(Section)
+#
+#
+# main()
