@@ -141,7 +141,7 @@ class ScrapeDriver:
                     start = oldstart
                     self.error[self.i] = [self.docsread[self.i], self.sectionmarkers[z], start, end]
 
-                # uncomment to print string added to section
+                # uncomment to print string added to sections
                 # print('{}\n'.format(noWS_docblock[start + len(self.sectionmarkers[z][j][0]): end]))
 
             else:
