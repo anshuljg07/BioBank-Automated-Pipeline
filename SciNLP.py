@@ -151,6 +151,7 @@ class Section:
             self.donerecursion = False
             self.tempNullValCUI = None
             self.CUIsearch_helper(entity)
+            self.cuigroups.append(self.tempNullValCUI)
             # CUIsearch_helper(entity, nlp, linker)
             # self.cuigroups.append(self.tempNullValCUI) # BUG if multiple subqueries only the last will be added
 
@@ -188,7 +189,7 @@ class Section:
                             self.tempNullValCUI.addsubCUI(cui, subgroup)
                             self.tempNullValCUI.containSubs = True
                             self.cuis.append(cui)
-                            self.cuigroups.append(self.tempNullValCUI)
+                            # self.cuigroups.append(self.tempNullValCUI)
                             print(self.sub_fmt_str.format(entity.text, cui, query.canonical_name))
                             return
                         else:
@@ -209,7 +210,7 @@ class Section:
                     # link to the null valued CUI group
                     self.tempNullValCUI.addsubCUI(first_cuid, subgroup)
                     self.tempNullValCUI.containSubs = True
-                    self.cuigroups.append(self.tempNullValCUI)
+                    # self.cuigroups.append(self.tempNullValCUI)
                     self.cuis.append(first_cuid)
                     print(sub_fmt_str.format(entity.text, first_cuid, query.canonical_name))
                     return
@@ -231,7 +232,7 @@ class Section:
                     # link to the null valued CUI group
                     self.tempNullValCUI.addsubCUI(first_cuid, subgroup)
                     self.tempNullValCUI.containSubs = True
-                    self.cuigroups.append(self.tempNullValCUI)
+                    # self.cuigroups.append(self.tempNullValCUI)
                     self.cuis.append(first_cuid)
                     print(self.sub_fmt_str.format(entity.text, first_cuid, query.canonical_name))
                     return
@@ -329,7 +330,7 @@ class Section:
                             self.donerecursion = True
                             # CUIsearch_helper(innerentity, nlp, linker)
                             self.CUIsearch_helper(innerentity)
-                            self.tempNullValCUI = None
+                # self.tempNullValCUI = None
 
             # print(fmt_str.format(entity.text, 'xxxxxxxx', 'NO ENTRY FOUND', 'NO DEF'))
 
