@@ -122,11 +122,15 @@ class Section:
             if(cuigroup is None):
                 continue
             if(not cuigroup.containSubs):  # if no subcuis exists
-                output += '\n' + self.fmt_str.format(cuigroup.entity.text, cuigroup.cui,
-                                                     cuigroup.canon, cuigroup.definition[:15])
+                try:
+                    output += '\n' + \
+                        self.fmt_str.format(cuigroup.entity.text, cuigroup.cui,
+                                            cuigroup.canon, cuigroup.definition[:15])
+                except TypeError:
+                    print("entity.text is NONE = {}, cui is NONE = {}, canon is NONE = {}".format(
+                        cuigroup.entity.text is None, cuigroup.cui is None, cuigroup.canon is None))
             else:
                 output += '\n' + self.fmt_str.format(cuigroup.entity.text, 'NONE', 'NONE', 'NONE')
-                print('subgroup: {}'.format(cuigroup.subCUIgroups))
                 for subcui in cuigroup.subCUIgroups:
                     output += '\n' + \
                         self.sub_fmt_str.format(subcui.entity.text, subcui.cui, subcui.canon)
@@ -159,8 +163,8 @@ class Section:
     # make linker a class attribute??
     # def CUIsearch_helper(self, entity, nlp, linker):
     def CUIsearch_helper(self, entity):
-        print('entity = {}, donerecursion = {}, tempNUllValCUI is null = {}'.format(
-            entity.text, str(self.donerecursion), str(self.tempNullValCUI is None)))
+        # print('entity = {}, donerecursion = {}, tempNUllValCUI is null = {}'.format(
+        #     entity.text, str(self.donerecursion), str(self.tempNullValCUI is None)))
         if(len(entity._.kb_ents) != 0):  # match exists in kb
             first_cuid = entity._.kb_ents[0][0]  # CAN I REPLACE "CUID" with "CUI"
             query = self.linker.kb.cui_to_entity[first_cuid]  # CAN I REPLACE "CUID" with "CUI"
@@ -189,8 +193,7 @@ class Section:
                             self.tempNullValCUI.addsubCUI(cui, subgroup)
                             self.tempNullValCUI.containSubs = True
                             self.cuis.append(cui)
-                            # self.cuigroups.append(self.tempNullValCUI)
-                            print(self.sub_fmt_str.format(entity.text, cui, query.canonical_name))
+                            # print(self.sub_fmt_str.format(entity.text, cui, query.canonical_name)) #testing
                             return
                         else:
                             # family = find_HeadandChildren(entity.text, nlp)
@@ -199,8 +202,7 @@ class Section:
                                                query.definition, family)
                             self.cuigroups.append(tempCUI)  # add cui grouping to the list of groups
                             self.cuis.append(cui)  # add unique cui to the list of cuis
-                            print(self.fmt_str.format(entity.text, cui,
-                                                      query.canonical_name, query.definition[:15]))
+                            # print(self.fmt_str.format(entity.text, cui, query.canonical_name, query.definition[:15])) testing
                             return
 
                 # if for loop completes then no match with a definition was found, so use the first match (best match)
@@ -210,9 +212,8 @@ class Section:
                     # link to the null valued CUI group
                     self.tempNullValCUI.addsubCUI(first_cuid, subgroup)
                     self.tempNullValCUI.containSubs = True
-                    # self.cuigroups.append(self.tempNullValCUI)
                     self.cuis.append(first_cuid)
-                    print(sub_fmt_str.format(entity.text, first_cuid, query.canonical_name))
+                    # print(sub_fmt_str.format(entity.text, first_cuid, query.canonical_name)) testing
                     return
                 else:
                     # family = find_HeadandChildren(entity.text, nlp)
@@ -220,7 +221,7 @@ class Section:
                     tempCUI = CUIgroup(first_cuid, entity, query.canonical_name, '', family)
                     self.cuigroups.append(tempCUI)
                     self.cuis.append(first_cuid)
-                    print(self.fmt_str.format(entity.text, first_cuid, query.canonical_name, ''))
+                    # print(self.fmt_str.format(entity.text, first_cuid, query.canonical_name, '')) #testing
                     return
 
             # if the first match contains a definition use the first match
@@ -232,9 +233,8 @@ class Section:
                     # link to the null valued CUI group
                     self.tempNullValCUI.addsubCUI(first_cuid, subgroup)
                     self.tempNullValCUI.containSubs = True
-                    # self.cuigroups.append(self.tempNullValCUI)
                     self.cuis.append(first_cuid)
-                    print(self.sub_fmt_str.format(entity.text, first_cuid, query.canonical_name))
+                    # print(self.sub_fmt_str.format(entity.text, first_cuid, query.canonical_name)) testing
                     return
 
                 else:
@@ -246,8 +246,7 @@ class Section:
                                        query.definition, family)
                     self.cuigroups.append(tempCUI)
                     self.cuis.append(first_cuid)
-                    print(self.fmt_str.format(entity.text, first_cuid,
-                                              query.canonical_name, query.definition[:15]))
+                    # print(self.fmt_str.format(entity.text, first_cuid, query.canonical_name, query.definition[:15])) testing
                     return
         # match doesn't exist in kb
         else:
@@ -305,8 +304,9 @@ class Section:
                 head_combos = list(head_combos)
                 child_combos = list(child_combos)
 
-                print(head_combos)
-                print(child_combos)
+                # testing
+                # print(head_combos)
+                # print(child_combos)
 
                 for i, headcombo in enumerate(head_combos):
                     if(len(headcombo) == 0):
@@ -316,8 +316,9 @@ class Section:
                             continue
                         # generate subquery string, that will be fed to the KB
                         subquery = (' '.join(childrencombo)) + ' ' + (' '.join(headcombo))
-                        print(self.query_fmt.format(
-                            ' '.join(childrencombo), ' '.join(headcombo), subquery))
+
+                        # testing
+                        # print(self.query_fmt.format(' '.join(childrencombo), ' '.join(headcombo), subquery))
 
                         # if you're simply searching for the original entity, skip it
                         if subquery == entity.text:
@@ -357,7 +358,8 @@ class Section:
 class NLPDriver():
     def __init__(self):
         # try and get the pip installation for the lg file (TIMES OUT, BAD WIFI?)
-        self.nlp = spacy.load("en_core_sci_md")
+        # self.nlp = spacy.load("en_core_sci_md")
+        self.nlp = spacy.load("en_core_sci_lg")
         self.nlp.add_pipe("scispacy_linker", config={
             "resolve_abbreviations": True, "linker_name": "umls"})
         self.linker = self.nlp.get_pipe("scispacy_linker")
@@ -665,7 +667,9 @@ word_bank = [['ifta', 'interstitial fibrosis tubular atrophy'], ['if/ta', 'inter
 
 def main():
     Driver = NLPDriver()
-    Section = Driver.CreateSection(' the biopsy consists of one fragment which is stained with h &e, pas , trichrome , jones silver and hps stains . review of all stains reveals at least 10 glomeruli of which three are globally sclerosed . the architecture of the kidney is relatively well -preserved. there is mild interstitial fibrosis and tubular atrophy (~5%). there is a patchy interstitial monomorphic small lymphocytic infiltrate involving ~5-10% of the biopsy tissue . the tubules show acute tubular injury . immunohistochemistry shows that the infiltrating lymphocytes are cd20 variably positive b -cells, which co -express cd5 . cd3 highlights admixed t cells . congo red stain is positive for focal congophilic deposits in arterioles and the glomerular mesangium . intimal sclerosis is present . ')
+    # Section = Driver.CreateSection(' the biopsy consists of one fragment which is stained with h &e, pas , trichrome , jones silver and hps stains . review of all stains reveals at least 10 glomeruli of which three are globally sclerosed . the architecture of the kidney is relatively well -preserved. there is mild interstitial fibrosis and tubular atrophy (~5%). there is a patchy interstitial monomorphic small lymphocytic infiltrate involving ~5-10% of the biopsy tissue . the tubules show acute tubular injury . immunohistochemistry shows that the infiltrating lymphocytes are cd20 variably positive b -cells, which co -express cd5 . cd3 highlights admixed t cells . congo red stain is positive for focal congophilic deposits in arterioles and the glomerular mesangium . intimal sclerosis is present . ')
+
+    Section = Driver.CreateSection(' findings most consistent with lupus nephritis , rps class ii , with chronicity. striped fibrosis and nodular hyalinosis in arterioles , consistent with chronic calcineurin inhibitory toxicity - acute tubular injury. acute tubular injury with findings suspicious for bile cast nephropathy. severe , diffuse acute tubular injury - patchy acute interstitial nephritis. focal necrotizing glomerulonephritis (see note ) - acute interstitial nephritis - acute tubular injury - focal and segmental glomerulosclerosis , favor secondary. proliferative lupus glomerulonephritis with chronicity (see note ) - acute interstitial nephritis.')
     Section.Analyze()
     # print(Section.cuis)
     print('\n\n\n')
