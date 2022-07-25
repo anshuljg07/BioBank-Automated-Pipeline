@@ -24,5 +24,6 @@ clinicalmodel = RepresentationModel(
     model_name='emilyalsentzer/Bio_ClinicalBERT',
     use_cuda=usingCUDA  # if using google collab's GPU, set this equal to True
 )
-sentence_vectors = clinicalmodel.encode_sentences(sentences, combine_strategy='mean')
+nonclinical_sentence_vectors = clinicalmodel.encode_sentences(sentences, combine_strategy='mean')
+clinical_sentence_vectors = clinicalmodel.encode_sentences(sentences, combine_strategy='mean')
 print(sentence_vectors.shape)

@@ -34,8 +34,8 @@ class ScrapeDriver:
 
         # TODO: add some docs to the testing list
         # self.docstesting = ['01-0001', '01-0028', '01-0097', '01-0159']
-        # self.docstesting = ['01-0001', '01-0028', '01-0097', '01-0159', '01-0172', '01-0194', '01-0209',
-        #                     '01-0228', '01-0271', '01-0286', '01-0304', '01-0311', '02-0014', '02-0024', '02-0066', '02-0080']
+        self.docstesting = ['01-0001', '01-0028', '01-0097', '01-0159', '01-0172', '01-0194', '01-0209',
+                            '01-0228', '01-0271', '01-0286', '01-0304', '01-0311', '02-0014', '02-0024', '02-0066', '02-0080']
         # self.docstesting = ['0099', '0013', '0016', '0025', '0028', '0059', '0073',
         #                     '0107', '0128', '0161', '0189', '0213', '0276', '0282', '0302', '0306', '0307']
 
@@ -144,11 +144,20 @@ class ScrapeDriver:
                         break
 
                     # to account for when "Gross Description:" occurs but no other headers follow
-                    if(start > 0 and end < 0 and self.sectionmarkers[z][j][0] == "gross description :" and j == len(self.sectionmarkers[z]) - 1):
+                    # if(start > 0 and end < 0 and self.sectionmarkers[z][j][0] == "gross description :" and j == len(self.sectionmarkers[z]) - 1):
+                    #     sections.append(
+                    #         noWS_docblock[start + len(self.sectionmarkers[z][j][0]): end])
+                    #     break
+                    # if(start < 0 and self.sectionmarkers[z][j][0] != "gross description :" and j == len(self.sectionmarkers[z]) - 1):
+                    #     sections.append(' ')
+                    #     start = oldstart
+                    #     break
+
+                    if(start > 0 and end < 0 and self.sectionmarkers[z][j][0] == 'immunofluorescence microscopy :' and j == len(self.sectionmarkers[z]) - 1):
                         sections.append(
                             noWS_docblock[start + len(self.sectionmarkers[z][j][0]): end])
                         break
-                    if(start < 0 and self.sectionmarkers[z][j][0] != "gross description :" and j == len(self.sectionmarkers[z]) - 1):
+                    if(start < 0 and self.sectionmarkers[z][j][0] != 'immunofluorescence microscopy :' and j == len(self.sectionmarkers[z]) - 1):
                         sections.append(' ')
                         start = oldstart
                         break
