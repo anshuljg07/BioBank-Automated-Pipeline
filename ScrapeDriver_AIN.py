@@ -20,11 +20,8 @@ class ScrapeDriver:
         self.pdfs = []
 
         # TODO: replace with AIN section markers
-        self.sectionmarkers = [['clinical information provided :', 'specimen (s) received :'], ['final diagnosis ', 'pathologist :'], ['pathologist :', '* report electronically signed out *'], [
-            ['light microscopy :', 'electron microscopy :'], ['light microscopy :', 'interpretation']], [['electron microscopy :', 'interpretation'], ['electron microscopy :', 'immunofluorescence']], ['immunofluorescence microscopy :', 'interpretation']]
-
-        # self.sectionmarkers = [['clinical information provided :', 'specimen (s) received :'], [['final diagnosis ', 'note :'], ['final diagnosis ', 'light microscopy :'], ['final diagnosis ', 'pathologist :']], [['light microscopy :', 'immunofluorescence microscopy :'], ['light microscopy :', 'immunofluorescence :'], ['light microscopy :', 'electron microscopy :'], ['light microscopy :', 'pathologist :']], [['immunofluorescence microscopy :', 'electron microscopy :'], ['immunofluorescence :', 'electron microscopy :'], ['immunofluorescence microscopy :', 'pathologist :']], [
-        #     'electron microscopy :', 'pathologist :'], ['pathologist :', '* report electronically signed out *'], [['gross description :', 'frozen /intraoperative diagnosis : ()'], ['gross description :', 'summary of stains performed and reviewed']]]
+        self.sectionmarkers = [['clinical information provided :', 'specimen (s) received :'], ['final diagnosis ', 'pathologist :'], ['pathologist :', '* report electronically signed out *'], [['light microscopy :', 'electron microscopy :'], [
+            'light microscopy :', 'interpretation'], ['light microscopy', 'electron microscopy :'], ['light microscopy', 'interpretation'], ['light microscopy', 'electron microscopy']], [['electron microscopy :', 'interpretation'], ['electron microscopy :', 'immunofluorescence'], ['electron microscopy', 'interpretation'], ['electron microscopy', 'immunofluorescence']], [['immunofluorescence microscopy :', 'interpretation'], ['immunofluorescence microscopy', 'interpretation']]]
         self.i = 0
         self.j = 0
         self.docsdata = []
@@ -33,9 +30,10 @@ class ScrapeDriver:
         self.docsread = []
 
         # TODO: add some docs to the testing list
-        # self.docstesting = ['01-0001', '01-0028', '01-0097', '01-0159']
-        self.docstesting = ['01-0001', '01-0028', '01-0097', '01-0159', '01-0172', '01-0194', '01-0209',
-                            '01-0228', '01-0271', '01-0286', '01-0304', '01-0311', '02-0014', '02-0024', '02-0066', '02-0080']
+        # self.docstesting = ['01-0005', '01-0006', '01-0007', '01-0008', '01-0010',
+        #                     '01-0012', '01-0015', '01-0016', '01-0017', '01-0018', '01-0119', '01-0120']
+        # self.docstesting = ['01-0001', '01-0028', '01-0097', '01-0159', '01-0172', '01-0194', '01-0209',
+        #                     '01-0228', '01-0271', '01-0286', '01-0304', '01-0311', '02-0014', '02-0024', '02-0066', '02-0080']
         # self.docstesting = ['0099', '0013', '0016', '0025', '0028', '0059', '0073',
         #                     '0107', '0128', '0161', '0189', '0213', '0276', '0282', '0302', '0306', '0307']
 
@@ -117,7 +115,8 @@ class ScrapeDriver:
         section_dict = {}
 
         noWS_docblock = ' '.join(re.findall(r'\w+|\S+', docblock)).lower()
-        # print('\n\n\n\t\t\t DOC BLOCK GENERATED FOR DOC#{}:\n{}'.format(self.i, noWS_docblock)) #uncomment for docblock
+        print('\n\n\n\t\t\t DOC BLOCK GENERATED FOR DOC#{}:\n{}'.format(
+            self.i, noWS_docblock))  # uncomment for docblock
 
         optionsdict = {}
 
@@ -153,14 +152,19 @@ class ScrapeDriver:
                     #     start = oldstart
                     #     break
 
-                    if(start > 0 and end < 0 and self.sectionmarkers[z][j][0] == 'immunofluorescence microscopy :' and j == len(self.sectionmarkers[z]) - 1):
+                    if(start > 0 and end < 0 and self.sectionmarkers[z][j][0] in ['immunofluorescence microscopy :', 'immunofluorescence microscopy'] and j == len(self.sectionmarkers[z]) - 1):
                         sections.append(
                             noWS_docblock[start + len(self.sectionmarkers[z][j][0]): end])
+                        print('\nNEW SECTION of DOC{}: \t{} -> {} \t\t {} -> {}'.format(self.i,
+                                                                                        self.sectionmarkers[z][j][0], self.sectionmarkers[z][j][1], start, end))
+                        print('\t{}'.format(
+                            noWS_docblock[start + len(self.sectionmarkers[z][j][0]): end]))
+
                         break
-                    if(start < 0 and self.sectionmarkers[z][j][0] != 'immunofluorescence microscopy :' and j == len(self.sectionmarkers[z]) - 1):
-                        sections.append(' ')
-                        start = oldstart
-                        break
+                    # if(start < 0 and self.sectionmarkers[z][j][0] not in ['immunofluorescence microscopy :', 'immunofluorescence microscopy'] and j == len(self.sectionmarkers[z]) - 1):
+                    #     sections.append(' ')
+                    #     start = oldstart
+                    #     break
 
                     if(start < 0):
                         start = oldstart  # reset start to a non-negative number
@@ -179,6 +183,17 @@ class ScrapeDriver:
                 end = noWS_docblock.find(self.sectionmarkers[z][1], start)
                 print('\nNEW SECTION of DOC{}: \t{} -> {} \t\t {} -> {}'.format(self.i,
                                                                                 self.sectionmarkers[z][0], self.sectionmarkers[z][1], start, end))
+
+                # if the "immunofluorescence" section is found by no text, add the remaining text in the document.
+                if(start > 0 and end < 0 and self.sectionmarkers[z][0] == 'immunofluorescence microscopy :'):
+                    start = oldstart
+                    sections.append(noWS_docblock[start + len(self.sectionmarkers[z][0]): end])
+                    self.error[self.i] = [self.docsread[self.i], self.sectionmarkers[z],
+                                          start, end]  # if this works, get rid of this
+                    print('{}\n'.format(noWS_docblock[start + len(self.sectionmarkers[z][0]): end]))
+                    continue
+
+                # if neither section is found add
                 if(start < 0 or end < 0):
                     start = oldstart
                     self.error[self.i] = [self.docsread[self.i], self.sectionmarkers[z], start, end]
@@ -187,9 +202,12 @@ class ScrapeDriver:
 
                 sections.append(noWS_docblock[start + len(self.sectionmarkers[z][0]): end])
 
-                # uncomment to print string added to section
+                # # uncomment to print string added to section
                 print('{}\n'.format(noWS_docblock[start + len(self.sectionmarkers[z][0]): end]))
 
+        # print('SECTIONS:')
+        # for section in sections:
+        #     print('\n{}\n'.format(section))
         return sections
 
     '''
@@ -394,7 +412,7 @@ def main():
     Drive.WritetoXLSX()
     print('Wrote out to xlsx files')
 
-    for key, value in Drive.error:
+    for key, value in Drive.error.items():
         print(value)
     done = input("Done with Error Output: \n?> ")
     if(done.lower() in ['y', 'yes']):
