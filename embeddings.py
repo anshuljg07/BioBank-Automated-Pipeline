@@ -1,5 +1,7 @@
 import torch
 from simpletransformers.language_representation import RepresentationModel
+import pandas as pd
+import openpyxl
 
 if torch.cuda.is_available():
     device = torch.device('cuda')
@@ -26,4 +28,11 @@ clinicalmodel = RepresentationModel(
 )
 nonclinical_sentence_vectors = clinicalmodel.encode_sentences(sentences, combine_strategy='mean')
 clinical_sentence_vectors = clinicalmodel.encode_sentences(sentences, combine_strategy='mean')
-print(sentence_vectors.shape)
+print(clinical_sentence_vectors)
+print(type(clinical_sentence_vectors))
+
+#df = pd.read_excel('xlsxfiles/AINBankrepo.xlsx')
+df = pd.read_excel('/Users/anshulgowda/Documents/CODE/KUH2022/xlsxfiles/AINBankrepo.xlsx')
+#print(df)
+
+#print(df.iloc[2, 1:7])

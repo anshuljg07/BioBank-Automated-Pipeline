@@ -12,7 +12,7 @@ import sqlite3
 
 class ScrapeDriver:
     def __init__(self):
-        self.procesedpath = '/Volumes/MoledinaLab-CC1032-MEDINT/Biobank 27890/Pathology Report PDF Analyzed'
+        self.processedpath = '/Volumes/MoledinaLab-CC1032-MEDINT/Biobank 27890/Pathology Report PDF Analyzed'
         self.drivepath = '/Volumes/MoledinaLab-CC1032-MEDINT/Biobank 27890/Pathology Report PDF Staging'
         self.homepath = '/Users/anshulgowda/Documents/CODE/KUH2022/'
         self.pdfs = []
@@ -308,7 +308,7 @@ class ScrapeDriver:
             pass
 
         for doc in os.listdir(os.getcwd()):
-            os.rename('{}/{}'.format(self.drivepath, doc), '{}/{}'.format(self.procesedpath, doc))
+            os.rename('{}/{}'.format(self.drivepath, doc), '{}/{}'.format(self.processedpath, doc))
 
     # NOT TESTED - DELETES BOX TIFFS and TIFF transition files
     def CleanUp(self):
