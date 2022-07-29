@@ -10,13 +10,21 @@
 
 --------------------------------------------------------------------------------
 
-This repository houses the ScrapeDriver developed for the Yale University School of Medicine's BioBank project through CTRA (Clinical and Translational Research Accelerator) and the associated NLP algorithim. The goals for the ScrapeDriver and NLP alogrithim used in tandem are:
+This repository houses the ScrapeDriver developed for the Yale University School of Medicine's BioBank project through CTRA (Clinical and Translational Research Accelerator) and the associated NLP algorithim. The goals for the ScrapeDriver and NLP alogrithim used in tandem are to :
 
-- Offer accurate, efficient, and scalable text-scraping of Yale NewHaven Health Pathology pdf reports.
-- Convert "dirty" data into usable medically relevant data that allows for the testing for the presence of statistically significant biological trends.
-- Offer an alternative to current labor intensive scraping and analysis techniques.
+- Offer accurate, efficient, and scalable text-scraping of Yale NewHaven Health Kidney Biopsy Pathology pdf reports.
+- Converts unstructured data into semi-structured medically relevant data, that allows for academic analysis for the presence of statistically significant biological trends.
+- Offer an alternative to current manual extraction techniques and reassessment by pathologists/medical providers.
 
 The Yale University School of Medicine's KUH program is funded by the NIH
+
+# ML Based Clinical Feature Extractor
+Scraping the histological and clinically relevant data off of kindey biopsy reports returns key qualitative data. This qualitative data is not suited for industry and academic standard statistical and algorithmic analyses. Thus, with the help of Aditya Biswas MS, data scientist, we are implementing a model based clinical feature extraction pipeline to extract standard factors from variably structured clinical data produced by the Scrape Engine. Currently we are training and optimizing binary prediction models to predict the presence of specific conditions, specifically these models extract:
+- Crescents
+- Tubulitis
+- Focal Glomerulosclerosis
+
+We are hope to further train these models or combine them with Natural Language Processing's (NLP) Named Entity Recognition (NER) to pull out the numeric quantifiers associated with these conditions; these include number, relative percentage, ratios, etc. The extraction of numeric quantifiers will fully convert this semi-structured qualitative data into structured quantitative data including accurate standard clinical factors. 
 
 # Getting Started
 ## Installation
@@ -169,10 +177,19 @@ The ScrapeDriver.py file was configured to work on Anshul's local machine, so it
 ```
 self.homepath = '/Users/anshulgowda/Documents/CODE/KUH2022/'
 ```
-Set this variable to the directory you created that houses the cloned source code. Line 16 should now look like this:
+Set this variable to the directory you created that houses the cloned source code. Line 17 should now look like this:
 ```
 self.homepath = {YOUR PATH GOES HERE}
 ```
+Furthermore, you need to change where the script goes to search for the biopsy files that will be scraped. To do this locate the attribute `drivepath` and change it to the path of the directory where the biopsy pdfs, or the staging directory. Line 16 should look like this:
+```
+self.drivepath = {YOUR PATH GOES HERE}
+```
+Lastly, you need to specify where the script should move the files after they have been scripted. To do this locate the attribute `processedpath` and change it to the path of an empty directory that you have created. Line 15 should look like this:
+```
+self.processedpath = {YOUR PATH GOES HERE}
+```
+
 
 
 
@@ -180,7 +197,7 @@ ScrapeDriver.py will automatically access the shared drive where the
 
 
 # The Team
-This repo is currently maintained by [Anshul Gowda](https://www.linkedin.com/in/anshul-gowda-693206200/). Feel free to reach out!
+This repo is currently maintained by [Anshul Gowda](https://www.linkedin.com/in/anshul-gowda-693206200/) and Aditya Biswas. Feel free to reach out!
 
 # Citation
 This repo is free for an academic use. Please do not forget to cite the following paper.
