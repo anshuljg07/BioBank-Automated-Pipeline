@@ -110,7 +110,7 @@ def batch_tokenize(text, tokenizer, max_len = 128, min_overlap = 0.2):
         
     # do zero-padding if less than 128 tokens total
     if n_groups == 1:
-        special_zeros = torch.zeros((1, max_len-split_indices[0,1])).long()
+        special_zeros = torch.zeros((1, max_len-(split_indices[0,1]+2))).long()
         for key in doc_tokenized:
             doc_tokenized[key] = torch.cat([doc_tokenized[key], special_zeros], 
                                            dim = 1)
