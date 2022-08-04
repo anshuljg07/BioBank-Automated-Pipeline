@@ -46,9 +46,8 @@ model_embedding = RepresentationModel(
     
 
 
-embedding = model_embedding.encode_sentences(df['text'], combine_strategy='mean')
+embeddings = model_embedding.encode_sentences(df['text'], combine_strategy=None)
 labels = df['labels'].values
-
 
 ###############################################################################
 ##### Train model
@@ -58,14 +57,14 @@ labels = df['labels'].values
 performance = []
 splitter = KFold(n_splits = 5, shuffle = True)
 for i, (train_index, val_index) in enumerate(splitter.split(df)):
-    X_train, X_val = embedding[train_index,:], embedding[val_index,:]
+    X_train, X_val = embeddings[train_index,:].mean(axis = 1), embeddings[val_index,:].mean(axis = 1)
     y_train, y_val = labels[train_index], labels[val_index]
     
-    model = LR(C = 10000, class_weight = 'balanced', max_iter = 1000)
+    model_lr = LR(C = 10000, class_weight = 'balanced', max_iter = 1000)
     #model = PR(alpha = 0.001, max_iter = 1000)
-    model.fit(X_train, y_train)
+    model_lr.fit(X_train, y_train)
     
-    y_val_hat = model.predict_proba(X_val)[:,1]
+    y_val_hat = model_lr.predict_proba(X_val)[:,1]
     performance.append(AUC(y_val, y_val_hat))
     print(i)
     
