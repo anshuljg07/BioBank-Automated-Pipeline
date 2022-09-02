@@ -1,4 +1,4 @@
-# KUH 2022: BioBank PDF Scraper & NLP analysis 
+# KUH 2022: BioBank PDF Scraper & ML Clinical Feature Extraction
 
 ![Python application](https://github.com/stephenbaek/imagiqfl/workflows/Python%20application/badge.svg)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
