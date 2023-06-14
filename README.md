@@ -1,5 +1,6 @@
 # KUH 2022: BioBank PDF Scraper & ML Clinical Feature Extraction
 
+![CodeQl Passing](https://github.com/tesseract-ocr/tesseract/security/code-scanning)
 ![Passing](https://camo.githubusercontent.com/0029e047a1f03572a4cc1d1f390606028f57cf6faa8cfa2f999798920970c362/68747470733a2f2f63692e6170707665796f722e636f6d2f6170692f70726f6a656374732f7374617475732f6d69616830696b667366306a333831392f6272616e63682f6d61737465723f7376673d74727565)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 --------------------------------------------------------------------------------
