@@ -199,7 +199,7 @@ ScrapeDriver.py will automatically access the shared drive where the
 
 
 # The Team
-This repo is currently maintained by [Anshul Gowda](https://www.linkedin.com/in/anshul-gowda-693206200/) and Aditya Biswas. Feel free to reach out!
+This repo is currently maintained by [Anshul Gowda](https://www.linkedin.com/in/anshul-%E0%B2%85%E0%B2%A8%E0%B3%8D%E0%B2%B6%E0%B3%81%E0%B2%B2%E0%B3%8D-gowda-693206200/) and Aditya Biswas. Feel free to reach out!
 
 # Citation
 This repo is free for an academic use. Please do not forget to cite the following paper.
